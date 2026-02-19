@@ -274,7 +274,7 @@ B-Specs includes JSON Schemas for both formats. With the [YAML extension for VS 
 Add to the top of your spec file:
 
 ```yaml
-# yaml-language-server: $schema=../../schema/lifecycle.v1.schema.json
+# yaml-language-server: $schema=https://mean-machine-gc.github.io/bspec/schema/lifecycle.v1.schema.json
 ```
 
 Or configure globally in VS Code settings:
@@ -282,8 +282,8 @@ Or configure globally in VS Code settings:
 ```json
 {
   "yaml.schemas": {
-    "./schema/lifecycle.v1.schema.json": "*.lifecycle.bspec.yaml",
-    "./schema/process.v1.schema.json": "*.process.bspec.yaml"
+    "https://mean-machine-gc.github.io/bspec/schema/lifecycle.v1.schema.json": "*.lifecycle.bspec.yaml",
+    "https://mean-machine-gc.github.io/bspec/schema/process.v1.schema.json": "*.process.bspec.yaml"
   }
 }
 ```
