@@ -1,0 +1,38 @@
+title: B-Specs
+description: Behavioural Specification Format for Software Systems
+remote_theme: just-the-docs/just-the-docs@v0.10.1
+
+plugins:
+  - jekyll-remote-theme
+
+# Serve schema files so they're accessible at username.github.io/bspec/schema/...
+include:
+  - schema
+
+exclude:
+  - .vscode
+  - node_modules
+  - "*.tar.gz"
+  - CHANGELOG.md
+  - LICENSE
+
+# just-the-docs settings
+color_scheme: light
+search_enabled: true
+heading_anchors: true
+
+nav_external_links:
+  - title: GitHub
+    url: https://github.com/INSERT_YOUR_USERNAME/bspec
+
+aux_links:
+  "GitHub":
+    - "https://github.com/INSERT_YOUR_USERNAME/bspec"
+
+footer_content: "B-Specs is open source under the MIT License."
+
+# Make code blocks look good
+kramdown:
+  syntax_highlighter_opts:
+    block:
+      line_numbers: false

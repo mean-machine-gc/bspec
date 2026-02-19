@@ -1,0 +1,165 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://bspec.dev/schema/lifecycle/v1.json",
+  "title": "Lifecycle B-Spec",
+  "description": "Behavioural Specification Format for Event-Sourced Aggregate Deciders",
+  "type": "object",
+  "required": ["bspec", "decider", "identity", "model", "lifecycle"],
+  "additionalProperties": false,
+  "properties": {
+    "bspec": {
+      "type": "string",
+      "const": "lifecycle/v1",
+      "description": "Format identifier and version."
+    },
+    "decider": {
+      "type": "string",
+      "pattern": "^[A-Z][a-zA-Z0-9]*$",
+      "description": "Aggregate name. PascalCase."
+    },
+    "identity": {
+      "type": "string",
+      "description": "Field that uniquely identifies aggregate instances."
+    },
+    "model": {
+      "type": "string",
+      "description": "Relative path to the TypeScript model file."
+    },
+    "common": {
+      "$ref": "#/$defs/predicateMap",
+      "description": "Reusable predicates referenced by bare name in And blocks."
+    },
+    "lifecycle": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/decision" },
+      "description": "List of decisions — one per command."
+    }
+  },
+  "$defs": {
+    "predicateName": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+      "description": "kebab-case identifier that reads as natural language."
+    },
+    "expression": {
+      "type": "string",
+      "description": "TypeScript boolean expression over dm.* or om.* namespaces."
+    },
+    "predicateMap": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/expression" },
+      "description": "Map of predicate names to expressions."
+    },
+    "predicateEntry": {
+      "oneOf": [
+        {
+          "type": "object",
+          "minProperties": 1,
+          "maxProperties": 1,
+          "additionalProperties": { "$ref": "#/$defs/expression" },
+          "description": "Inline predicate: name → expression."
+        },
+        {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+          "description": "Common reference: bare name resolved from common section."
+        }
+      ]
+    },
+    "constraintList": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/predicateEntry" },
+      "description": "List of constraints. All must hold."
+    },
+    "eventName": {
+      "type": "string",
+      "pattern": "^[A-Z][a-zA-Z0-9]*$",
+      "description": "Event name. PascalCase, must match a type in the model."
+    },
+    "conditionalEvent": {
+      "type": "object",
+      "minProperties": 1,
+      "maxProperties": 1,
+      "additionalProperties": {
+        "$ref": "#/$defs/constraintList"
+      },
+      "description": "Event with conditions: EventName → list of condition predicates."
+    },
+    "eventSpec": {
+      "oneOf": [
+        { "$ref": "#/$defs/eventName" },
+        { "$ref": "#/$defs/conditionalEvent" }
+      ],
+      "description": "An event specification: unconditional (bare name) or conditional (name with predicates)."
+    },
+    "thenSpec": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/eventName",
+          "description": "Scalar form: single unconditional event."
+        },
+        {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/eventSpec" },
+          "description": "List form: one or more events, each unconditional or conditional."
+        }
+      ],
+      "description": "Event specification. Scalar for single event, list for multiple/conditional."
+    },
+    "assertionList": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "minProperties": 1,
+        "maxProperties": 1,
+        "additionalProperties": { "$ref": "#/$defs/expression" }
+      },
+      "description": "List of assertion predicates. All must hold."
+    },
+    "outcomeSpec": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/assertionList",
+          "description": "Flat form: all assertions apply to every success."
+        },
+        {
+          "type": "object",
+          "properties": {
+            "_always": { "$ref": "#/$defs/assertionList" }
+          },
+          "additionalProperties": { "$ref": "#/$defs/assertionList" },
+          "description": "Keyed form: _always for universal assertions, event names for conditional assertions."
+        }
+      ],
+      "description": "Outcome assertions. Flat list or keyed by event name."
+    },
+    "decision": {
+      "type": "object",
+      "required": ["When", "Then", "Outcome"],
+      "additionalProperties": false,
+      "properties": {
+        "When": {
+          "type": "string",
+          "pattern": "^[A-Z][a-zA-Z0-9]*$",
+          "description": "Command name. One decision per command."
+        },
+        "And": {
+          "$ref": "#/$defs/constraintList",
+          "description": "Constraints that must all hold for the command to succeed."
+        },
+        "Then": {
+          "$ref": "#/$defs/thenSpec",
+          "description": "Events produced on success."
+        },
+        "Outcome": {
+          "$ref": "#/$defs/outcomeSpec",
+          "description": "Assertions that must hold after evolve."
+        }
+      }
+    }
+  }
+}

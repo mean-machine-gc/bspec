@@ -1,0 +1,248 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://bspec.dev/schema/process/v1.json",
+  "title": "Process B-Spec",
+  "description": "Behavioural Specification Format for Cross-Aggregate Coordination",
+  "type": "object",
+  "required": ["bspec", "process", "reacts_to", "emits_to", "model", "reactions"],
+  "additionalProperties": false,
+  "properties": {
+    "bspec": {
+      "type": "string",
+      "const": "process/v1",
+      "description": "Format identifier and version."
+    },
+    "process": {
+      "type": "string",
+      "pattern": "^[A-Z][a-zA-Z0-9]*$",
+      "description": "Process manager name. PascalCase."
+    },
+    "reacts_to": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/deciderName" },
+      "description": "Deciders whose events this process manager subscribes to."
+    },
+    "emits_to": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/deciderName" },
+      "description": "Deciders to which this process manager dispatches commands."
+    },
+    "model": {
+      "type": "string",
+      "description": "Relative path to the TypeScript model file."
+    },
+    "state": {
+      "type": "object",
+      "additionalProperties": { "type": "string" },
+      "description": "Process manager state fields (stateful sagas only). Values are TypeScript type expressions."
+    },
+    "common": {
+      "$ref": "#/$defs/predicateMap",
+      "description": "Reusable predicates referenced by bare name."
+    },
+    "reactions": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/reaction" },
+      "description": "List of reactions."
+    }
+  },
+  "$defs": {
+    "deciderName": {
+      "type": "string",
+      "pattern": "^[A-Z][a-zA-Z0-9]*$",
+      "description": "Decider name. PascalCase."
+    },
+    "eventName": {
+      "type": "string",
+      "pattern": "^[A-Z][a-zA-Z0-9]*$",
+      "description": "Event name. PascalCase."
+    },
+    "sourcedEvent": {
+      "type": "string",
+      "pattern": "^[A-Z][a-zA-Z0-9]* from [A-Z][a-zA-Z0-9]*$",
+      "description": "Event with source: 'EventName from DeciderName'"
+    },
+    "predicateName": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+      "description": "kebab-case identifier."
+    },
+    "expression": {
+      "type": "string",
+      "description": "TypeScript boolean expression over rm.* or om.* namespaces."
+    },
+    "predicateMap": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/expression" }
+    },
+    "predicateEntry": {
+      "oneOf": [
+        {
+          "type": "object",
+          "minProperties": 1,
+          "maxProperties": 1,
+          "additionalProperties": { "$ref": "#/$defs/expression" }
+        },
+        {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        }
+      ]
+    },
+    "constraintList": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/predicateEntry" }
+    },
+    "whenScalar": {
+      "type": "string",
+      "pattern": "^[A-Z][a-zA-Z0-9]*$",
+      "description": "Scalar trigger: single event name."
+    },
+    "whenAny": {
+      "type": "object",
+      "required": ["any"],
+      "additionalProperties": false,
+      "properties": {
+        "any": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "$ref": "#/$defs/eventName" },
+          "description": "OR trigger: any one of these events fires the reaction."
+        }
+      }
+    },
+    "whenAllCross": {
+      "type": "object",
+      "required": ["all"],
+      "additionalProperties": false,
+      "properties": {
+        "all": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "$ref": "#/$defs/sourcedEvent" },
+          "description": "AND trigger with per-event sources: 'EventName from DeciderName'"
+        }
+      }
+    },
+    "whenAllShared": {
+      "type": "object",
+      "required": ["all"],
+      "additionalProperties": false,
+      "properties": {
+        "all": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "$ref": "#/$defs/eventName" },
+          "description": "AND trigger with shared source (From field required)."
+        }
+      }
+    },
+    "whenSpec": {
+      "oneOf": [
+        { "$ref": "#/$defs/whenScalar" },
+        { "$ref": "#/$defs/whenAny" },
+        { "$ref": "#/$defs/whenAllCross" },
+        { "$ref": "#/$defs/whenAllShared" }
+      ],
+      "description": "Trigger specification. Scalar (one event), any (OR), or all (AND)."
+    },
+    "targetedCommand": {
+      "type": "string",
+      "pattern": "^[A-Z][a-zA-Z0-9]* -> [A-Z][a-zA-Z0-9]*$",
+      "description": "CommandName -> DeciderName"
+    },
+    "conditionalCommand": {
+      "type": "object",
+      "minProperties": 1,
+      "maxProperties": 1,
+      "patternProperties": {
+        "^[A-Z][a-zA-Z0-9]* -> [A-Z][a-zA-Z0-9]*$": {
+          "$ref": "#/$defs/constraintList"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Command with conditions."
+    },
+    "commandSpec": {
+      "oneOf": [
+        { "$ref": "#/$defs/targetedCommand" },
+        { "$ref": "#/$defs/conditionalCommand" }
+      ]
+    },
+    "thenSpec": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/targetedCommand",
+          "description": "Scalar form: single unconditional command."
+        },
+        {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/commandSpec" },
+          "description": "List form: one or more commands."
+        }
+      ]
+    },
+    "assertionList": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "minProperties": 1,
+        "maxProperties": 1,
+        "additionalProperties": { "$ref": "#/$defs/expression" }
+      }
+    },
+    "outcomeSpec": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/assertionList",
+          "description": "Flat form."
+        },
+        {
+          "type": "object",
+          "properties": {
+            "_always": { "$ref": "#/$defs/assertionList" }
+          },
+          "additionalProperties": { "$ref": "#/$defs/assertionList" },
+          "description": "Keyed form: _always + command-keyed sections."
+        }
+      ]
+    },
+    "reaction": {
+      "type": "object",
+      "required": ["When", "Then", "Outcome"],
+      "additionalProperties": false,
+      "properties": {
+        "When": {
+          "$ref": "#/$defs/whenSpec",
+          "description": "Trigger: scalar event, any (OR), or all (AND)."
+        },
+        "From": {
+          "$ref": "#/$defs/deciderName",
+          "description": "Source decider. Required for scalar and any. Optional for all (when all events share source)."
+        },
+        "correlate": {
+          "type": "string",
+          "description": "Field name that links events to the same instance. Required for all triggers."
+        },
+        "And": {
+          "$ref": "#/$defs/constraintList",
+          "description": "Constraints for the reaction to proceed."
+        },
+        "Then": {
+          "$ref": "#/$defs/thenSpec",
+          "description": "Commands to dispatch."
+        },
+        "Outcome": {
+          "$ref": "#/$defs/outcomeSpec",
+          "description": "Assertions about dispatched commands."
+        }
+      }
+    }
+  }
+}
