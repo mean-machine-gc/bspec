@@ -11,7 +11,7 @@ permalink: /
 
 UbiSpec is a structured YAML format for capturing software behaviour. It describes *what a system does* — which actions are possible, under what conditions, what happens as a result, and what must be true afterwards — in a format that is both human-readable and machine-processable.
 
-- **Make sure to visit the** — [Payground](https://mean-machine-gc.github.io/bspec/playground) to the UbiSpec in action!
+- **Make sure to visit the** — [Payground](https://mean-machine-gc.github.io/bspec/playground) to see the UbiSpec in action!
 
 ## The Problem
 
