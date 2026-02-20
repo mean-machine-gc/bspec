@@ -11,6 +11,8 @@ permalink: /
 
 UbiSpec is a structured YAML format for capturing software behaviour. It describes *what a system does* — which actions are possible, under what conditions, what happens as a result, and what must be true afterwards — in a format that is both human-readable and machine-processable.
 
+- **Make sure to visit the** — [Payground](https://mean-machine-gc.github.io/bspec/playground) to the UbiSpec in action!
+
 ## The Problem
 
 Software behaviour lives in the wrong places. Acceptance criteria in tickets, rules in Confluence pages, test plans in spreadsheets, diagrams on whiteboards, decisions in people's heads. All of these try to express the same thing: "when X happens under conditions Y, then Z must be true." But they express it in prose that can't be validated, can't be cross-referenced, and can't generate anything.
