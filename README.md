@@ -5,11 +5,11 @@ nav_order: 1
 permalink: /
 ---
 
-# B-Specs
+# UbiSpec
 
 **Behavioural Specification Format for Software Systems**
 
-B-Specs is a structured YAML format for capturing software behaviour. It describes *what a system does* — which actions are possible, under what conditions, what happens as a result, and what must be true afterwards — in a format that is both human-readable and machine-processable.
+UbiSpec is a structured YAML format for capturing software behaviour. It describes *what a system does* — which actions are possible, under what conditions, what happens as a result, and what must be true afterwards — in a format that is both human-readable and machine-processable.
 
 ## The Problem
 
@@ -19,7 +19,7 @@ The result is familiar: requirements that contradict each other, test cases that
 
 ## The Approach
 
-B-Specs gives behaviour a structured home:
+UbiSpec gives behaviour a structured home:
 
 ```yaml
 - When: ApproveRegistry
@@ -86,7 +86,7 @@ When the team is ready, each name gets an **executable predicate** — a precise
 
 Same structure. Same names. Now executable. Three levels of detail, each useful on its own, each building on the last.
 
-## What B-Specs Gives You
+## What UbiSpec Gives You
 
 From a single source of truth, at each level of predicate detail:
 
@@ -102,22 +102,22 @@ From a single source of truth, at each level of predicate detail:
 | Executable test suites | | | ✓ |
 | Implementation skeletons | | | ✓ |
 
-The first column requires zero code. A B-Spec with names only is already a complete behavioural specification — structured enough to generate documentation and stories, precise enough to validate with stakeholders. Adding scope annotations (`dm.state`, `dm.ctx`) reveals the architecture. Adding expressions makes it executable.
+The first column requires zero code. A UbiSpec with names only is already a complete behavioural specification — structured enough to generate documentation and stories, precise enough to validate with stakeholders. Adding scope annotations (`dm.state`, `dm.ctx`) reveals the architecture. Adding expressions makes it executable.
 
-## Where B-Specs Fits
+## Where UbiSpec Fits
 
-B-Specs operationalises the output of collaborative modelling. It's not a replacement for domain discovery — it's what you write *after* discovery, to capture what you learned in a format that survives.
+UbiSpec operationalises the output of collaborative modelling. It's not a replacement for domain discovery — it's what you write *after* discovery, to capture what you learned in a format that survives.
 
 ### Starting From Collaborative Modelling
 
-If you've done EventStorming, Context Mapping, Example Mapping, or similar workshops, you already have the raw material: bounded contexts, aggregates, commands, events, policies, read models. B-Specs gives that material a structured home:
+If you've done EventStorming, Context Mapping, Example Mapping, or similar workshops, you already have the raw material: bounded contexts, aggregates, commands, events, policies, read models. UbiSpec gives that material a structured home:
 
 ```
 EventStorming / Context Mapping / Domain Conversations
     ↓
 Bounded contexts identified, aggregates sketched
     ↓
-B-Specs (one Lifecycle per aggregate, one Process per coordination flow)
+UbiSpec (one Lifecycle per aggregate, one Process per coordination flow)
     ↓
     ├→ Validation with domain experts (names pass)
     ├→ User stories, test scenarios, documentation
@@ -125,32 +125,32 @@ B-Specs (one Lifecycle per aggregate, one Process per coordination flow)
     └→ Implementation, executable tests
 ```
 
-The workshop gives you the big picture — contexts, boundaries, flows. B-Specs zooms into each aggregate and captures the precise rules: which commands are accepted, under what conditions, what changes, what doesn't.
+The workshop gives you the big picture — contexts, boundaries, flows. UbiSpec zooms into each aggregate and captures the precise rules: which commands are accepted, under what conditions, what changes, what doesn't.
 
 ### Starting From Scratch
 
-If there's no prior modelling, B-Specs can be used as a discovery tool. Writing specs forces the questions that matter: *What can happen to this thing? When can it happen? What prevents it? What changes as a result? What must stay the same?*
+If there's no prior modelling, UbiSpec can be used as a discovery tool. Writing specs forces the questions that matter: *What can happen to this thing? When can it happen? What prevents it? What changes as a result? What must stay the same?*
 
 Start with one aggregate. Write the lifecycle. Present it. The gaps and contradictions surface quickly — "wait, can a suspended lab be closed directly?" — because the structure demands answers the way prose doesn't.
 
-As you write more aggregates, cross-cutting coordination surfaces naturally: "when this event happens on aggregate A, does anything need to happen on aggregate B?" That's a Process B-Spec. The topology of your system emerges from the specs.
+As you write more aggregates, cross-cutting coordination surfaces naturally: "when this event happens on aggregate A, does anything need to happen on aggregate B?" That's a Process UbiSpec. The topology of your system emerges from the specs.
 
-This works especially well when prototyping: sketch a few lifecycles, see how they interact, refactor boundaries. B-Specs are cheap to rewrite because they're small and self-contained.
+This works especially well when prototyping: sketch a few lifecycles, see how they interact, refactor boundaries. UbiSpec are cheap to rewrite because they're small and self-contained.
 
 ### Either Way
 
-Whether you start from a week-long EventStorming or a single conversation, B-Specs captures the output in the same format. The quality of the specs depends on the quality of the discovery — but the format ensures that whatever you discover doesn't evaporate.
+Whether you start from a week-long EventStorming or a single conversation, UbiSpec captures the output in the same format. The quality of the specs depends on the quality of the discovery — but the format ensures that whatever you discover doesn't evaporate.
 
 ## Specification Formats
 
-B-Specs currently defines two formats:
+UbiSpec currently defines two formats:
 
 | Format | File | Captures |
 |--------|------|----------|
-| [**Lifecycle B-Spec**](spec/lifecycle.md) | `*.lifecycle.bspec.yaml` | Single aggregate behaviour: commands, conditions, outcomes |
-| [**Process B-Spec**](spec/process.md) | `*.process.bspec.yaml` | Cross-aggregate coordination: event reactions, command dispatch |
+| [**Lifecycle UbiSpec**](spec/lifecycle.md) | `*.lifecycle.bspec.yaml` | Single aggregate behaviour: commands, conditions, outcomes |
+| [**Process UbiSpec**](spec/process.md) | `*.process.bspec.yaml` | Cross-aggregate coordination: event reactions, command dispatch |
 
-### Lifecycle B-Spec
+### Lifecycle UbiSpec
 
 Describes one aggregate's complete behavioural contract: what commands it accepts, under what conditions, what events it produces, and what must be true after.
 
@@ -172,7 +172,7 @@ lifecycle:
       - placed-at-recorded
 ```
 
-### Process B-Spec
+### Process UbiSpec
 
 Describes how aggregates coordinate: when an event on one aggregate triggers commands on another.
 
@@ -203,11 +203,11 @@ Every predicate has a name. The value — the part after the colon — is option
 - registry-is-draft: "dm.state.status.kind === 'Draft'"        # Executable expression
 ```
 
-All four are valid B-Specs. They represent a spectrum from general to precise. Use the level that fits your stage and audience. Levels can be mixed within a single spec — some predicates fully expressed, others still at name-only. See the [Conceptual Foundations](guide/conceptual-foundations.md#namespaces-over-expressions) for why this matters.
+All four are valid UbiSpec. They represent a spectrum from general to precise. Use the level that fits your stage and audience. Levels can be mixed within a single spec — some predicates fully expressed, others still at name-only. See the [Conceptual Foundations](guide/conceptual-foundations.md#namespaces-over-expressions) for why this matters.
 
 ### Two-Pass Workflow
 
-B-Specs are designed for two audiences:
+UbiSpec are designed for two audiences:
 
 **Pass 1 — Domain Pass (names + scopes):** Work with domain experts. Write constraint and assertion names as natural language. Optionally annotate with scope (`dm.state`, `dm.ctx`). Validate the logic: "Is it true that a reviewer must be authorised? Is it true that archival only happens when another registry is active?" No code, just structured conversation output.
 
@@ -241,7 +241,7 @@ The `dm.ctx` and `rm.ctx` namespaces do quiet but important work: every referenc
 
 ### Implicit Failure
 
-B-Specs only describe success paths. When any constraint fails, the system produces a standard `DecisionFailed` event carrying the names of the failed constraints:
+UbiSpec only describe success paths. When any constraint fails, the system produces a standard `DecisionFailed` event carrying the names of the failed constraints:
 
 ```
 { kind: 'DecisionFailed', decision: 'ApproveRegistry', failed: ['reviewer-is-authorised'] }
@@ -269,7 +269,7 @@ Then:
 
 ## Editor Support
 
-B-Specs includes JSON Schemas for both formats. With the [YAML extension for VS Code](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml), you get validation, autocomplete, and hover documentation.
+UbiSpec includes JSON Schemas for both formats. With the [YAML extension for VS Code](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml), you get validation, autocomplete, and hover documentation.
 
 Add to the top of your spec file:
 
@@ -293,8 +293,8 @@ Or configure globally in VS Code settings:
 ```
 bspec/
 ├── spec/
-│   ├── lifecycle.md                   ← Lifecycle B-Spec specification
-│   └── process.md                     ← Process B-Spec specification
+│   ├── lifecycle.md                   ← Lifecycle UbiSpec specification
+│   └── process.md                     ← Process UbiSpec specification
 ├── schema/
 │   ├── lifecycle.v1.schema.json       ← JSON Schema for editor support
 │   └── process.v1.schema.json         ← JSON Schema for editor support
@@ -313,7 +313,7 @@ bspec/
 
 3. **Success paths only.** Failure is implicit in constraints. The `DecisionFailed` convention keeps specs focused on what the system does.
 
-4. **Types in the model, behaviour in the spec.** The domain model defines shapes. B-Specs define what happens. Neither duplicates the other.
+4. **Types in the model, behaviour in the spec.** The domain model defines shapes. UbiSpec define what happens. Neither duplicates the other.
 
 5. **Additive, not branching.** Commands produce all events whose conditions are met. No nested branches, no priority ordering. Complexity proportional to actual complexity.
 
@@ -323,9 +323,9 @@ bspec/
 
 8. **Detail is a spectrum, not a gate.** Name only, scope annotation, prose description, executable expression — all valid, mixable within one spec. Start where you are. Add precision when you need it.
 
-## Practices B-Specs Operationalises
+## Practices UbiSpec Operationalises
 
-B-Specs is informed by and designed to complement:
+UbiSpec is informed by and designed to complement:
 
 - **Domain-Driven Design** — bounded contexts, aggregates, ubiquitous language
 - **EventStorming** — commands, events, policies, read models, aggregate boundaries
@@ -333,11 +333,11 @@ B-Specs is informed by and designed to complement:
 - **Specification by Example** — concrete scenarios that define expected behaviour
 - **Example Mapping** — rules, examples, and questions structured by story
 
-B-Specs doesn't replace these practices. It gives their output a durable, structured format that generates downstream artifacts instead of gathering dust.
+UbiSpec doesn't replace these practices. It gives their output a durable, structured format that generates downstream artifacts instead of gathering dust.
 
 ## Status
 
-B-Specs is in early development. The Lifecycle and Process formats are stable enough to use. Tooling (validator CLI, test generator, story generator) is planned.
+UbiSpec is in early development. The Lifecycle and Process formats are stable enough to use. Tooling (validator CLI, test generator, story generator) is planned.
 
 Feedback, examples, and contributions are welcome.
 

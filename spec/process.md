@@ -1,21 +1,21 @@
 ---
 layout: default
-title: Process B-Spec
+title: Process UbiSpec
 nav_order: 5
 ---
 
-# Process B-Spec
+# Process UbiSpec
 
 **Behavioural Specification Format for Cross-Aggregate Coordination**
 
 Version: 0.4.0
-Part of: B-Specs (Behavioural Specification Format for Software Systems)
+Part of: UbiSpec (Behavioural Specification Format for Software Systems)
 
 ---
 
 ## 1. Purpose
 
-A Process B-Spec describes the coordination logic between aggregates. It captures:
+A Process UbiSpec describes the coordination logic between aggregates. It captures:
 
 - Which events trigger cross-aggregate reactions
 - Under what conditions each reaction proceeds
@@ -24,15 +24,15 @@ A Process B-Spec describes the coordination logic between aggregates. It capture
 
 A process manager sits between deciders. It subscribes to events from source deciders and dispatches commands to target deciders. It may be stateless (a reactor) or stateful (a saga).
 
-A Process B-Spec only describes **active reactions**. If an event is observed and no conditions are met, no commands are dispatched — this is a valid no-op that does not need to be specified.
+A Process UbiSpec only describes **active reactions**. If an event is observed and no conditions are met, no commands are dispatched — this is a valid no-op that does not need to be specified.
 
 ## 2. Scope
 
-One Process B-Spec per process manager. A system may have zero or many process managers. Each coordinates between two or more aggregates whose lifecycles are described in Lifecycle B-Specs.
+One Process UbiSpec per process manager. A system may have zero or many process managers. Each coordinates between two or more aggregates whose lifecycles are described in Lifecycle UbiSpec.
 
 ## 3. Relationship to Model and Lifecycle Specs
 
-A Process B-Spec references the same TypeScript model as the Lifecycle B-Specs it coordinates. It also references the Lifecycle B-Specs themselves — the event names in `When` must match events specified in the source decider's lifecycle, and the command names in `Then` must match commands specified in the target decider's lifecycle.
+A Process UbiSpec references the same TypeScript model as the Lifecycle UbiSpec it coordinates. It also references the Lifecycle UbiSpec themselves — the event names in `When` must match events specified in the source decider's lifecycle, and the command names in `Then` must match commands specified in the target decider's lifecycle.
 
 This cross-reference is the **contract boundary**: the process manager is guaranteed to receive events with the shapes defined by the source decider, and must emit commands with the shapes expected by the target decider.
 
@@ -85,7 +85,7 @@ When present, the state fields are available as `rm.state` in predicates and the
 
 ### 4.3 Common
 
-Same as Lifecycle B-Spec §4.2. Reusable predicates referenced by bare name.
+Same as Lifecycle UbiSpec §4.2. Reusable predicates referenced by bare name.
 
 ## 5. Reaction
 
@@ -130,7 +130,7 @@ The reaction fires when **any one** of the listed events occurs. This is an OR �
 Rules:
 
 - All listed events must come from the same decider (named in `From`).
-- All listed events must be defined in the source decider's Lifecycle B-Spec.
+- All listed events must be defined in the source decider's Lifecycle UbiSpec.
 - Each invocation receives exactly one event. `rm.event` is typed as the discriminated union of the listed events. Use `rm.event.kind` to distinguish variants (§7.1).
 
 **Use `any` when** multiple events represent variants of the same domain occurrence and the reaction logic is mostly identical, with small differences handled by conditional commands or event narrowing.
@@ -151,7 +151,7 @@ Rules:
 
 - Events can come from different deciders. Each event is annotated with its source decider using the `EventName from DeciderName` syntax.
 - All listed deciders must appear in `reacts_to`.
-- All listed events must be defined in their respective source decider's Lifecycle B-Specs.
+- All listed events must be defined in their respective source decider's Lifecycle UbiSpec.
 - The `correlate` field declares which field links the events to the same instance. The named field must exist on every listed event.
 - `From` is not used. Source deciders are declared per-event.
 - Events may arrive in any order. The runtime handles accumulation.
@@ -186,7 +186,7 @@ And:
   - <constraint-name>
 ```
 
-Same semantics as Lifecycle B-Spec §5.2. All constraints must hold for the reaction to proceed. If any fails, no commands are dispatched.
+Same semantics as Lifecycle UbiSpec §5.2. All constraints must hold for the reaction to proceed. If any fails, no commands are dispatched.
 
 For `all` triggers, constraints are evaluated **after** all events have arrived. The constraint predicates have access to every event payload via `rm.events`.
 
@@ -225,12 +225,12 @@ Each entry is a command that may or may not be dispatched:
 
 Rules:
 
-- **All qualifying commands are dispatched.** Additive, same as Lifecycle B-Spec events.
+- **All qualifying commands are dispatched.** Additive, same as Lifecycle UbiSpec events.
 - Commands are dispatched **in list order**. Order matters — a target decider may reject a command if a prior command hasn't been processed first.
 - Conditions are evaluated against the **Reaction Model** (§7).
 - If all commands are conditional and none match, no commands are dispatched (valid no-op).
 - The `-> DeciderName` must reference a decider in `emits_to`.
-- The `CommandName` must match a command in the target decider's Lifecycle B-Spec.
+- The `CommandName` must match a command in the target decider's Lifecycle UbiSpec.
 
 #### Patterns
 
@@ -333,7 +333,7 @@ All assertions use the **Outcome Model** (§8).
 
 ## 6. Predicate Entry
 
-Same as Lifecycle B-Spec §6. All four detail levels apply — name only, scope annotation, prose description, and executable expression. Levels can be mixed within a single spec.
+Same as Lifecycle UbiSpec §6. All four detail levels apply — name only, scope annotation, prose description, and executable expression. Levels can be mixed within a single spec.
 
 For process manager predicates, scope annotations reference `rm.*` and `om.*` namespaces instead of `dm.*`:
 
@@ -653,7 +653,7 @@ Payment    --[PaymentConfirmed]---\
 Inventory  --[InventoryReserved]--/
 ```
 
-An agent can extract the full topology from all Process B-Specs and Lifecycle B-Specs in the system.
+An agent can extract the full topology from all Process UbiSpec and Lifecycle UbiSpec in the system.
 
 ### 10.2 As Test Cases
 
@@ -896,9 +896,9 @@ CommandName      := PascalCase identifier
 FieldName        := camelCase identifier
 ```
 
-## 13. Comparison with Lifecycle B-Spec
+## 13. Comparison with Lifecycle UbiSpec
 
-| Concept | Lifecycle B-Spec | Process B-Spec |
+| Concept | Lifecycle UbiSpec | Process UbiSpec |
 |---------|-----------------|----------------|
 | Triggered by | Command (`When`) | Event(s) (`When` + `From`) |
 | Produces | Events (`Then`) | Commands (`Then` + `-> Target`) |

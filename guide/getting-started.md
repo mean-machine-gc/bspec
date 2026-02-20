@@ -4,17 +4,17 @@ title: Getting Started
 nav_order: 3
 ---
 
-# Getting Started with B-Specs
+# Getting Started with UbiSpec
 
-This guide walks through creating B-Specs for a system, starting from domain discovery and ending with a structured specification that can generate user stories, test scenarios, and documentation.
+This guide walks through creating UbiSpec for a system, starting from domain discovery and ending with a structured specification that can generate user stories, test scenarios, and documentation.
 
 ## Prerequisites
 
-B-Specs captures behaviour. Before writing specs, you need to understand the domain. This understanding can come from:
+UbiSpec captures behaviour. Before writing specs, you need to understand the domain. This understanding can come from:
 
 - **Collaborative modelling sessions** (EventStorming, Context Mapping, Example Mapping)
 - **Domain conversations** with experts and stakeholders
-- **Exploratory prototyping** — writing B-Specs to surface questions
+- **Exploratory prototyping** — writing UbiSpec to surface questions
 
 The first two are recommended. The third works when you're early in discovery and want to use the spec format itself as a thinking tool.
 
@@ -24,7 +24,7 @@ The first two are recommended. The third works when you're early in discovery an
 
 You've run EventStorming workshops or similar sessions. You have a sense of your bounded contexts, key aggregates, commands, events, and policies. You know what the major pieces are and roughly how they interact.
 
-**Start here:** Pick one aggregate. Write its Lifecycle B-Spec. Move to the next. Then write Process B-Specs for the coordination between them.
+**Start here:** Pick one aggregate. Write its Lifecycle UbiSpec. Move to the next. Then write Process UbiSpec for the coordination between them.
 
 ### Entry B: You're Exploring
 
@@ -77,7 +77,7 @@ Each answer is a command. For each command, ask:
 
 Don't try to be exhaustive on the first pass. Capture the main paths. You'll discover edge cases as you write.
 
-## Step 4: Write the Lifecycle B-Spec (Names Only)
+## Step 4: Write the Lifecycle UbiSpec (Names Only)
 
 Start with names only. No predicates. This is the **domain pass** — meant to be validated by anyone in the room.
 
@@ -165,7 +165,7 @@ Update the spec. Each revision is a conversation turn captured in structure. The
 
 Once you have two or more lifecycles, ask: **When this event happens on aggregate A, does anything need to happen on aggregate B?**
 
-Walk through every event. Most won't trigger anything. Some will. Those are your Process B-Specs.
+Walk through every event. Most won't trigger anything. Some will. Those are your Process UbiSpec.
 
 Create a file: `order-fulfillment.process.bspec.yaml`
 
@@ -197,7 +197,7 @@ This reveals the **system topology** — which aggregates talk to each other and
 
 ## Step 7: Generate Artifacts
 
-From the names-only B-Specs, you can already generate:
+From the names-only UbiSpec, you can already generate:
 
 ### User Stories
 
@@ -283,6 +283,6 @@ This is a different pass by different people. The structure doesn't change. The 
 
 **Assert what doesn't change.** If placing an order shouldn't modify the customer ID, say so: `customer-unchanged`. The negative space catches bugs that positive assertions miss.
 
-**Let the Process B-Spec reveal architecture.** Don't design the coordination up front. Write the lifecycles first. Then ask "what needs to react to this event?" The topology emerges.
+**Let the Process UbiSpec reveal architecture.** Don't design the coordination up front. Write the lifecycles first. Then ask "what needs to react to this event?" The topology emerges.
 
 **Revisit after implementation.** Once code exists, the spec becomes a living contract. If the code can't satisfy an outcome assertion, either the code has a bug or the spec has a wrong assumption. Either way, the conversation is productive.

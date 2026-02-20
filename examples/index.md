@@ -6,7 +6,7 @@ nav_order: 6
 
 # Examples
 
-Complete B-Specs examples across different domains, demonstrating that the format is general-purpose.
+Complete UbiSpec examples across different domains, demonstrating that the format is general-purpose.
 
 ## E-commerce Order
 

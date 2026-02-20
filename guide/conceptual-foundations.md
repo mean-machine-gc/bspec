@@ -6,11 +6,11 @@ nav_order: 2
 
 # Conceptual Foundations
 
-This page explains the reasoning behind B-Specs: where the format comes from, why it takes the shape it does, and how each design choice follows from the one before it.
+This page explains the reasoning behind UbiSpec: where the format comes from, why it takes the shape it does, and how each design choice follows from the one before it.
 
 ## Starting Point: EventStorming's Visual Grammar
 
-B-Specs owes its primary debt to [EventStorming](https://www.eventstorming.com/), created by Alberto Brandolini. EventStorming provides a visual grammar for exploring system behaviour using sticky notes — commands, events, policies, aggregates, read models — that a room full of people can arrange on a wall to build a shared understanding of a domain.
+UbiSpec owes its primary debt to [EventStorming](https://www.eventstorming.com/), created by Alberto Brandolini. EventStorming provides a visual grammar for exploring system behaviour using sticky notes — commands, events, policies, aggregates, read models — that a room full of people can arrange on a wall to build a shared understanding of a domain.
 
 What makes EventStorming powerful is not the sticky notes. It is the **two fundamental sequences** that compose all system behaviour:
 
@@ -28,12 +28,12 @@ Event(s) → [policy logic] → Command(s)
 
 These two sequences compose. A command produces events, which trigger policies, which issue commands, which produce events. Any system behaviour — however complex — can be decomposed into these two building blocks chained together.
 
-B-Specs formalises these two sequences into two specification formats:
+UbiSpec formalises these two sequences into two specification formats:
 
-| EventStorming | B-Specs | File |
+| EventStorming | UbiSpec | File |
 |---------------|---------|------|
-| Command-led sequence | **Decision** | Lifecycle B-Spec |
-| Policy sequence | **Reaction** | Process B-Spec |
+| Command-led sequence | **Decision** | Lifecycle UbiSpec |
+| Policy sequence | **Reaction** | Process UbiSpec |
 
 The entire format follows from this decomposition.
 
@@ -70,7 +70,7 @@ To evaluate constraints and branching logic, the decision needs data. If we ask 
 
 **External context (`dm.ctx`).** Information that lives outside the aggregate — in another service, in a clock, in a read model. The aggregate can't know this from its own history; something must look it up before the decision runs. "Is this reviewer authorised? Is another registry currently active?"
 
-These three sources — command, state, context — are the **decision model**. In B-Specs, they form the `dm` namespace: `dm.cmd`, `dm.state`, `dm.ctx`.
+These three sources — command, state, context — are the **decision model**. In UbiSpec, they form the `dm` namespace: `dm.cmd`, `dm.state`, `dm.ctx`.
 
 The context namespace does quiet but important work. Every `dm.ctx` reference in a specification is a **shell contract**: a declaration that the runtime environment must resolve this value before the decision function is called. An agent or developer can scan a specification for all `dm.ctx` references and mechanically derive the integration points for each command. Nothing is hidden.
 
@@ -102,7 +102,7 @@ This separation offers several practical advantages:
 
 **Separation of concerns.** The decision logic (what events to produce) is separate from the state transition logic (how to apply an event). This prevents a common mistake: mixing business rule validation with state mutation, which makes both harder to reason about and test.
 
-B-Specs captures the decide side of this pattern — what events a command produces under what conditions. The evolve side is implied by the outcome assertions: "after these events are applied, these things must be true about the state." The Lifecycle B-Spec is, in essence, a formal contract for both sides of the Decider pattern.
+UbiSpec captures the decide side of this pattern — what events a command produces under what conditions. The evolve side is implied by the outcome assertions: "after these events are applied, these things must be true about the state." The Lifecycle UbiSpec is, in essence, a formal contract for both sides of the Decider pattern.
 
 It is worth noting that event sourcing is a natural fit for this model but not a requirement. The decision/reaction decomposition, the namespace model, and the specification structure all work regardless of how state is persisted. A system using traditional state storage can still benefit from specifying behaviour as decisions and reactions with clear input and output models.
 
@@ -146,33 +146,33 @@ A reaction may be triggered by more than one event. Two patterns exist, and they
 
 **OR — any of these events.** Several events trigger the same reaction. Only one event has occurred; the reaction runs once. This is common when events are variants of the same domain occurrence: "assessment submitted fully met" and "assessment submitted with gaps" both trigger the same review workflow.
 
-In B-Specs, this is expressed with `When: { any: [...] }`. The `rm.event` is typed as a discriminated union of the listed events — it is always exactly one event, and the reaction uses the event's `kind` field to distinguish variants when the logic differs.
+In UbiSpec, this is expressed with `When: { any: [...] }`. The `rm.event` is typed as a discriminated union of the listed events — it is always exactly one event, and the reaction uses the event's `kind` field to distinguish variants when the logic differs.
 
-A note on typing: each predicate in a B-Spec is a standalone expression. Discriminated union narrowing in TypeScript is control-flow based — it works within an expression (e.g., `rm.event.kind === 'X' && rm.event.specificField`) but does not carry across separate predicate expressions. In B-Specs, the conditional structure provides the narrowing context: a conditional command's predicates establish which event variant is present, and outcome assertions under that command key can safely reference variant-specific fields. This is a specification convention, not a language feature — tooling that validates predicate expressions should respect the conditional hierarchy as a narrowing boundary.
+A note on typing: each predicate in a UbiSpec is a standalone expression. Discriminated union narrowing in TypeScript is control-flow based — it works within an expression (e.g., `rm.event.kind === 'X' && rm.event.specificField`) but does not carry across separate predicate expressions. In UbiSpec, the conditional structure provides the narrowing context: a conditional command's predicates establish which event variant is present, and outcome assertions under that command key can safely reference variant-specific fields. This is a specification convention, not a language feature — tooling that validates predicate expressions should respect the conditional hierarchy as a narrowing boundary.
 
 **AND — all of these events must arrive.** The reaction waits for multiple events — potentially from different aggregates, arriving at different times — before acting. This is the scatter-gather or join pattern.
 
-In B-Specs, this is expressed with `When: { all: [...] }` combined with a `correlate` field that declares how events are matched to the same instance. Each event's payload is accessible by name via `rm.events.EventName` — no union, no narrowing needed, each event has its concrete type.
+In UbiSpec, this is expressed with `When: { all: [...] }` combined with a `correlate` field that declares how events are matched to the same instance. Each event's payload is accessible by name via `rm.events.EventName` — no union, no narrowing needed, each event has its concrete type.
 
 The runtime handles accumulation: events arrive in any order, are stored by correlation key, and the reaction fires once when the set is complete. The spec author describes the completed state — what happens when all events are present — not the mechanics of accumulation.
 
-The distinction matters because OR is a specification convenience (deduplicating similar reactions), while AND is a coordination mechanism (waiting for convergence). B-Specs makes this distinction explicit: `any` for OR, `all` for AND, each with its own namespace pattern.
+The distinction matters because OR is a specification convenience (deduplicating similar reactions), while AND is a coordination mechanism (waiting for convergence). UbiSpec makes this distinction explicit: `any` for OR, `all` for AND, each with its own namespace pattern.
 
 ## Composition: From Decisions to Systems
 
 Decisions and reactions are the atomic building blocks. They compose into larger structures:
 
-**An aggregate** is one or more decisions sharing an identity. In the simplest case, one decision per command, all operating on the same state. In Eric Evans' Domain-Driven Design, an aggregate is a consistency boundary — everything inside it is transactionally consistent. A Lifecycle B-Spec captures one aggregate.
+**An aggregate** is one or more decisions sharing an identity. In the simplest case, one decision per command, all operating on the same state. In Eric Evans' Domain-Driven Design, an aggregate is a consistency boundary — everything inside it is transactionally consistent. A Lifecycle UbiSpec captures one aggregate.
 
-**A process** emerges when decisions are linked by reactions within the same subsystem. Event A on aggregate X triggers a command on aggregate Y, which produces event B, which triggers a command on aggregate Z. The reactions form a choreography — a chain of cause and effect. A Process B-Spec captures these reactions.
+**A process** emerges when decisions are linked by reactions within the same subsystem. Event A on aggregate X triggers a command on aggregate Y, which produces event B, which triggers a command on aggregate Z. The reactions form a choreography — a chain of cause and effect. A Process UbiSpec captures these reactions.
 
-**A workflow** spans subsystem boundaries. When reactions connect processes in different bounded contexts — each with their own models, their own language, their own deployment boundaries — the coordination becomes a long-running workflow. The same Process B-Spec format applies, but the `reacts_to` and `emits_to` declarations cross context boundaries, making the coupling explicit and visible.
+**A workflow** spans subsystem boundaries. When reactions connect processes in different bounded contexts — each with their own models, their own language, their own deployment boundaries — the coordination becomes a long-running workflow. The same Process UbiSpec format applies, but the `reacts_to` and `emits_to` declarations cross context boundaries, making the coupling explicit and visible.
 
 This composition is fractal. A complex system is processes made of reactions linking decisions. A complex process is a chain of reactions. A complex decision is constraints and conditional events. At every level, the same two primitives — "command in, events out" and "events in, commands out" — do the work.
 
 ## The Naming Principle
 
-Every constraint, condition, and assertion in a B-Spec has a **name** — a kebab-case identifier that reads as natural language.
+Every constraint, condition, and assertion in a UbiSpec has a **name** — a kebab-case identifier that reads as natural language.
 
 ```yaml
 - reviewer-is-authorised
@@ -181,9 +181,9 @@ Every constraint, condition, and assertion in a B-Spec has a **name** — a keba
 - catalog-unchanged
 ```
 
-This is not documentation. The names are the specification. They carry the meaning. A domain expert can read a B-Spec with names only (no predicate expressions) and validate whether the behaviour is correct. The expressions add precision for developers and machines, but the names are what the team agrees on.
+This is not documentation. The names are the specification. They carry the meaning. A domain expert can read a UbiSpec with names only (no predicate expressions) and validate whether the behaviour is correct. The expressions add precision for developers and machines, but the names are what the team agrees on.
 
-This design enables the **two-pass workflow** that B-Specs is built around. The first pass — with domain experts — produces a specification in natural language, structured as When/And/Then/Outcome. The second pass — with developers — adds executable expressions to each name. Same artifact, different audiences, no translation step between them.
+This design enables the **two-pass workflow** that UbiSpec is built around. The first pass — with domain experts — produces a specification in natural language, structured as When/And/Then/Outcome. The second pass — with developers — adds executable expressions to each name. Same artifact, different audiences, no translation step between them.
 
 The names also serve as the **ubiquitous language** that Eric Evans identified as central to domain-driven design. When a constraint is named `reviewer-is-authorised`, that phrase should mean the same thing in conversations, in specifications, in code, and in error messages. The implicit failure convention reinforces this: when a constraint fails, the `DecisionFailed` event carries the constraint name as the failure reason. The specification, the error message, and the test assertion all use the same words.
 
@@ -240,13 +240,13 @@ A specification at Level 4 (executable expressions) is where machines take over.
 
 The key insight is that **the namespaces work at every level**. `dm.ctx` is meaningful whether the value is an empty annotation, a prose description, or a TypeScript expression. The namespace vocabulary — decision model, outcome model, reaction model — is the constant. The expression language is a variable.
 
-This is why B-Specs is not tied to TypeScript, despite using TypeScript expressions in its examples and tooling. The namespace structure (`dm.cmd`, `dm.state`, `dm.ctx`) is a general vocabulary for describing behavioural data flow. A team working in Kotlin would write `dm.state.status is Draft` instead of `dm.state.status.kind === 'Draft'`. A team working in F# would write `dm.state.Status = Draft`. The structure and the namespaces are the same. The expressions are native to the implementation language.
+This is why UbiSpec is not tied to TypeScript, despite using TypeScript expressions in its examples and tooling. The namespace structure (`dm.cmd`, `dm.state`, `dm.ctx`) is a general vocabulary for describing behavioural data flow. A team working in Kotlin would write `dm.state.status is Draft` instead of `dm.state.status.kind === 'Draft'`. A team working in F# would write `dm.state.Status = Draft`. The structure and the namespaces are the same. The expressions are native to the implementation language.
 
 And a team that is not writing code at all — that is capturing behaviour for documentation, validation, or contractual purposes — can use Levels 1 through 3 and never write an expression. The specification is still structured, still traceable, still capable of generating stories and test scenarios. The expressions are an option, not a requirement.
 
 ## Acknowledgements
 
-B-Specs builds on the work of:
+UbiSpec builds on the work of:
 
 - **Alberto Brandolini** — [EventStorming](https://www.eventstorming.com/) and its visual grammar of commands, events, and policies
 - **Jérémie Chassaing** — the [Decider pattern](https://thinkbeforecoding.com/post/2021/12/17/functional-event-sourcing-decider) (decide/evolve/initial)
@@ -255,4 +255,4 @@ B-Specs builds on the work of:
 - **Gojko Adzic** — [Specification by Example](https://gojko.net/books/specification-by-example/), executable specifications as living documentation
 - **Matt Wynne and the BDD community** — [Example Mapping](https://cucumber.io/blog/bdd/example-mapping-introduction/) as a structured discovery technique
 
-B-Specs does not replace these practices. It gives their output a structured, durable format — one that survives the workshop, generates downstream artifacts, and evolves with the system.
+UbiSpec does not replace these practices. It gives their output a structured, durable format — one that survives the workshop, generates downstream artifacts, and evolves with the system.

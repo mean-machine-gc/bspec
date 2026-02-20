@@ -1,21 +1,21 @@
 ---
 layout: default
-title: Lifecycle B-Spec
+title: Lifecycle UbiSpec
 nav_order: 4
 ---
 
-# Lifecycle B-Spec
+# Lifecycle UbiSpec
 
 **Behavioural Specification Format for Event-Sourced Aggregate Deciders**
 
 Version: 0.2.0
-Part of: B-Specs (Behavioural Specification Format for Software Systems)
+Part of: UbiSpec (Behavioural Specification Format for Software Systems)
 
 ---
 
 ## 1. Purpose
 
-A Lifecycle B-Spec describes the complete behavioural contract of an event-sourced aggregate decider. It captures:
+A Lifecycle UbiSpec describes the complete behavioural contract of an event-sourced aggregate decider. It captures:
 
 - Which commands the aggregate accepts
 - Under what conditions each command is accepted or rejected
@@ -24,15 +24,15 @@ A Lifecycle B-Spec describes the complete behavioural contract of an event-sourc
 
 The spec is both human-readable (constraint names are natural language) and machine-executable (predicates are TypeScript expressions). It serves simultaneously as a domain conversation artifact, a test suite, and an implementation contract.
 
-A Lifecycle B-Spec only describes **success paths**. Failure handling is implicit (§9).
+A Lifecycle UbiSpec only describes **success paths**. Failure handling is implicit (§9).
 
 ## 2. Scope
 
-One Lifecycle B-Spec per aggregate. Cross-aggregate coordination is specified separately in a Process B-Spec.
+One Lifecycle UbiSpec per aggregate. Cross-aggregate coordination is specified separately in a Process UbiSpec.
 
 ## 3. Relationship to Model
 
-A Lifecycle B-Spec references a TypeScript model file that defines all domain types. The model is the type authority. The spec is the behaviour authority. The spec does not define types.
+A Lifecycle UbiSpec references a TypeScript model file that defines all domain types. The model is the type authority. The spec is the behaviour authority. The spec does not define types.
 
 ## 4. Document Structure
 
@@ -242,7 +242,7 @@ Every predicate has a name — a kebab-case identifier that reads as natural lan
 
 ### 6.2 Detail Levels
 
-The value of a predicate — the part after the colon — can take four forms, from least to most precise. All four are valid B-Specs. They represent a spectrum, not a hierarchy. Use the level that fits your stage and audience.
+The value of a predicate — the part after the colon — can take four forms, from least to most precise. All four are valid UbiSpec. They represent a spectrum, not a hierarchy. Use the level that fits your stage and audience.
 
 #### Level 1: Name Only
 
@@ -296,7 +296,7 @@ The predicate is a boolean expression evaluable against the domain model. This i
 - Be pure (no side effects, no variables, no async)
 - Use `?.` for optional fields, `?? default` for safe defaults
 
-The expression language used in this specification is TypeScript, chosen because it is widely readable and because it matches the domain model format. The B-Specs structure (names, namespaces, When/And/Then/Outcome) is language-agnostic. Teams working in other languages can write expressions in their own syntax while using the same namespaces and the same specification structure.
+The expression language used in this specification is TypeScript, chosen because it is widely readable and because it matches the domain model format. The UbiSpec structure (names, namespaces, When/And/Then/Outcome) is language-agnostic. Teams working in other languages can write expressions in their own syntax while using the same namespaces and the same specification structure.
 
 ### 6.3 Mixing Levels
 
@@ -375,7 +375,7 @@ Rule: context must never carry information derivable from `dm.state`.
 
 ### 7.4 Derivations
 
-From a Lifecycle B-Spec, an agent can mechanically derive:
+From a Lifecycle UbiSpec, an agent can mechanically derive:
 
 - **Context type per command**: scan all `dm.ctx.*` references → generate TypeScript type.
 - **Shell function per command**: one async function per command with context dependencies.
@@ -442,7 +442,7 @@ A thorough Outcome includes:
 
 ## 9. Implicit Failure Convention
 
-A Lifecycle B-Spec only describes success paths. Failure is handled by convention.
+A Lifecycle UbiSpec only describes success paths. Failure is handled by convention.
 
 ### 9.1 The DecisionFailed Event
 

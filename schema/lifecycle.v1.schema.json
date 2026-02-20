@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://bspec.dev/schema/lifecycle/v1.json",
-  "title": "Lifecycle B-Spec",
+  "title": "Lifecycle UbiSpec",
   "description": "Behavioural Specification Format for Event-Sourced Aggregate Deciders",
   "type": "object",
   "required": ["bspec", "decider", "identity", "model", "lifecycle"],
