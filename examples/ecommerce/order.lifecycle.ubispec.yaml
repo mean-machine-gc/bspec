@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=../../schema/lifecycle.v1.schema.json
 
-bspec: lifecycle/v1
+ubispec: lifecycle/v1
 
 decider: Order
 identity: orderId

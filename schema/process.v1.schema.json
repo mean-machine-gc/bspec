@@ -1,13 +1,13 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://bspec.dev/schema/process/v1.json",
+  "$id": "https://mean-machine-gc.github.io/bspec/schema/process.v1.schema.json",
   "title": "Process UbiSpec",
   "description": "Behavioural Specification Format for Cross-Aggregate Coordination",
   "type": "object",
-  "required": ["bspec", "process", "reacts_to", "emits_to", "model", "reactions"],
+  "required": ["ubispec", "process", "reacts_to", "emits_to", "model", "reactions"],
   "additionalProperties": false,
   "properties": {
-    "bspec": {
+    "ubispec": {
       "type": "string",
       "const": "process/v1",
       "description": "Format identifier and version."

@@ -1,13 +1,13 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://bspec.dev/schema/lifecycle/v1.json",
+  "$id": "https://mean-machine-gc.github.io/bspec/schema/lifecycle.v1.schema.json",
   "title": "Lifecycle UbiSpec",
   "description": "Behavioural Specification Format for Event-Sourced Aggregate Deciders",
   "type": "object",
-  "required": ["bspec", "decider", "identity", "model", "lifecycle"],
+  "required": ["ubispec", "decider", "identity", "model", "lifecycle"],
   "additionalProperties": false,
   "properties": {
-    "bspec": {
+    "ubispec": {
       "type": "string",
       "const": "lifecycle/v1",
       "description": "Format identifier and version."

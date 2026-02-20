@@ -13,8 +13,8 @@ Complete UbiSpec examples across different domains, demonstrating that the forma
 A familiar domain: orders that move through a lifecycle from draft to delivery, with fulfillment coordination across inventory, payment, and notification systems.
 
 **Files:**
-- [`order.lifecycle.bspec.yaml`](https://github.com/mean-machine-gc/bspec/blob/main/examples/ecommerce/order.lifecycle.bspec.yaml) — Order aggregate lifecycle (create, add lines, place, confirm, ship, deliver, cancel, refund)
-- [`order-fulfillment.process.bspec.yaml`](https://github.com/mean-machine-gc/bspec/blob/main/examples/ecommerce/order-fulfillment.process.bspec.yaml) — Fulfillment coordination (inventory reservation, payment capture, notifications)
+- [`order.lifecycle.ubispec.yaml`](https://github.com/mean-machine-gc/bspec/blob/main/examples/ecommerce/order.lifecycle.ubispec.yaml) — Order aggregate lifecycle (create, add lines, place, confirm, ship, deliver, cancel, refund)
+- [`order-fulfillment.process.ubispec.yaml`](https://github.com/mean-machine-gc/bspec/blob/main/examples/ecommerce/order-fulfillment.process.ubispec.yaml) — Fulfillment coordination (inventory reservation, payment capture, notifications)
 - [`model.ts`](https://github.com/mean-machine-gc/bspec/blob/main/examples/ecommerce/model.ts) — TypeScript domain model
 
 **Patterns demonstrated:**
@@ -29,8 +29,8 @@ A familiar domain: orders that move through a lifecycle from draft to delivery, 
 A governance domain: laboratories undergo capability assessment against a national registry, with assignments tracked through review and confirmation workflows.
 
 **Files:**
-- [`laboratory.lifecycle.bspec.yaml`](https://github.com/mean-machine-gc/bspec/blob/main/examples/laboratory/laboratory.lifecycle.bspec.yaml) — Laboratory aggregate lifecycle (register, activate, suspend, assign profiles, update assignments)
-- [`assessment-lifecycle.process.bspec.yaml`](https://github.com/mean-machine-gc/bspec/blob/main/examples/laboratory/assessment-lifecycle.process.bspec.yaml) — Assessment coordination (submission → review → confirmation/adjustment)
+- [`laboratory.lifecycle.ubispec.yaml`](https://github.com/mean-machine-gc/bspec/blob/main/examples/laboratory/laboratory.lifecycle.ubispec.yaml) — Laboratory aggregate lifecycle (register, activate, suspend, assign profiles, update assignments)
+- [`assessment-lifecycle.process.ubispec.yaml`](https://github.com/mean-machine-gc/bspec/blob/main/examples/laboratory/assessment-lifecycle.process.ubispec.yaml) — Assessment coordination (submission → review → confirmation/adjustment)
 
 **Patterns demonstrated:**
 - `any` trigger: `[AssessmentSubmittedFullyMet, AssessmentSubmittedWithGaps]` on one reaction

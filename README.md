@@ -147,8 +147,8 @@ UbiSpec currently defines two formats:
 
 | Format | File | Captures |
 |--------|------|----------|
-| [**Lifecycle UbiSpec**](spec/lifecycle.md) | `*.lifecycle.bspec.yaml` | Single aggregate behaviour: commands, conditions, outcomes |
-| [**Process UbiSpec**](spec/process.md) | `*.process.bspec.yaml` | Cross-aggregate coordination: event reactions, command dispatch |
+| [**Lifecycle UbiSpec**](spec/lifecycle.md) | `*.lifecycle.ubispec.yaml` | Single aggregate behaviour: commands, conditions, outcomes |
+| [**Process UbiSpec**](spec/process.md) | `*.process.ubispec.yaml` | Cross-aggregate coordination: event reactions, command dispatch |
 
 ### Lifecycle UbiSpec
 
@@ -264,8 +264,8 @@ Then:
 
 | Domain | Files | Shows |
 |--------|-------|-------|
-| [E-commerce Order](examples/ecommerce/) | `order.lifecycle.bspec.yaml`, `order-fulfillment.process.bspec.yaml` | Full order lifecycle with fulfillment coordination |
-| [Laboratory Capability](examples/laboratory/) | `laboratory.lifecycle.bspec.yaml`, `assessment-lifecycle.process.bspec.yaml` | Assessment workflow with cross-aggregate process manager |
+| [E-commerce Order](examples/ecommerce/) | `order.lifecycle.ubispec.yaml`, `order-fulfillment.process.ubispec.yaml` | Full order lifecycle with fulfillment coordination |
+| [Laboratory Capability](examples/laboratory/) | `laboratory.lifecycle.ubispec.yaml`, `assessment-lifecycle.process.ubispec.yaml` | Assessment workflow with cross-aggregate process manager |
 
 ## Editor Support
 
@@ -282,8 +282,8 @@ Or configure globally in VS Code settings:
 ```json
 {
   "yaml.schemas": {
-    "https://mean-machine-gc.github.io/bspec/schema/lifecycle.v1.schema.json": "*.lifecycle.bspec.yaml",
-    "https://mean-machine-gc.github.io/bspec/schema/process.v1.schema.json": "*.process.bspec.yaml"
+    "https://mean-machine-gc.github.io/bspec/schema/lifecycle.v1.schema.json": "*.lifecycle.ubispec.yaml",
+    "https://mean-machine-gc.github.io/bspec/schema/process.v1.schema.json": "*.process.ubispec.yaml"
   }
 }
 ```

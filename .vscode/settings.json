@@ -1,10 +1,10 @@
 {
   "yaml.schemas": {
-    "./schema/lifecycle.v1.schema.json": "*.lifecycle.bspec.yaml",
-    "./schema/process.v1.schema.json": "*.process.bspec.yaml"
+    "./schema/lifecycle.v1.schema.json": "*.lifecycle.ubispec.yaml",
+    "./schema/process.v1.schema.json": "*.process.ubispec.yaml"
   },
   "yaml.customTags": [],
   "files.associations": {
-    "*.bspec.yaml": "yaml"
+    "*.ubispec.yaml": "yaml"
   }
 }

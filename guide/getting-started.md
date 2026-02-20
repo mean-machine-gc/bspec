@@ -81,7 +81,7 @@ Don't try to be exhaustive on the first pass. Capture the main paths. You'll dis
 
 Start with names only. No predicates. This is the **domain pass** — meant to be validated by anyone in the room.
 
-Create a file: `order.lifecycle.bspec.yaml`
+Create a file: `order.lifecycle.ubispec.yaml`
 
 ```yaml
 bspec: lifecycle/v1
@@ -167,7 +167,7 @@ Once you have two or more lifecycles, ask: **When this event happens on aggregat
 
 Walk through every event. Most won't trigger anything. Some will. Those are your Process UbiSpec.
 
-Create a file: `order-fulfillment.process.bspec.yaml`
+Create a file: `order-fulfillment.process.ubispec.yaml`
 
 ```yaml
 bspec: process/v1
