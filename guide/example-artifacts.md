@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Example artifacts
-nav_order: 5
+nav_order: 8
 ---
 
 # UbiSpec — Derived Artifact Examples
