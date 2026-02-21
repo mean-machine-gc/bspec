@@ -1,0 +1,456 @@
+---
+layout: null
+permalink: /llms-full.txt
+---
+# UbiSpec — Full Reference for LLM Agents
+
+Version: v1.0
+Updated: 2026-02-21
+
+## 1. What UbiSpec Is
+
+UbiSpec is a structured YAML format for specifying software behaviour. It captures what a system does — which commands are accepted, under what conditions, what events are produced, and what must be true afterwards. It is human-readable and machine-processable.
+
+UbiSpec defines two formats:
+- **Lifecycle** — one aggregate's behavioural contract (commands, constraints, events, outcomes)
+- **Process** — cross-aggregate coordination (event reactions, command dispatch)
+
+File extensions: `*.lifecycle.ubispec.yaml` and `*.process.ubispec.yaml`.
+
+## 2. Lifecycle Format
+
+A lifecycle spec describes one aggregate (decider). One file per aggregate. One entry per command.
+
+### 2.1 Top-Level Structure
+
+```yaml
+ubispec: lifecycle/v1.0           # required — format and version
+decider: Order                     # required — aggregate name, PascalCase
+identity: orderId                  # required — unique identity field
+model: "./model.ts"                # required — path to domain types
+
+common:                            # optional — reusable predicate definitions
+  order-is-draft: "dm.state.status.kind === 'Draft'"
+
+lifecycle:                         # required — list of decisions
+  - When: ...
+```
+
+### 2.2 Decision Entry
+
+Each entry in the `lifecycle` array describes one command:
+
+```yaml
+- When: PlaceOrder                 # required — command name, PascalCase
+  actor: Customer                  # optional — role that typically initiates this
+  And:                             # optional — constraints, all must hold
+    - order-is-draft
+    - has-lines
+    - all-products-in-stock
+  Then:                            # required — events produced on success
+    - OrderPlaced
+    - HighValueOrderFlagged:
+        - high-value
+  Outcome:                         # required — assertions after state change
+    _always:
+      - state-is-placed
+    HighValueOrderFlagged:
+      - requires-manual-review
+```
+
+### 2.3 Field Reference
+
+**When** (string, required): Command name. PascalCase. One decision per command.
+
+**actor** (string, optional): Role or persona that typically initiates this command. Documentation hint, not enforced at runtime. Authorization is handled externally.
+
+**And** (list, optional): Constraints that must all hold for the command to succeed. Each item is a predicate entry (see §4 Predicates). If any constraint fails, the command is rejected.
+
+**Then** (string or list, required): Events produced on success.
+- Scalar form: single unconditional event: `Then: OrderPlaced`
+- List form: one or more events, each unconditional or conditional:
+  ```yaml
+  Then:
+    - OrderPlaced                    # unconditional — always emitted
+    - HighValueOrderFlagged:         # conditional — emitted when conditions met
+        - high-value
+  ```
+  Additive semantics: ALL events whose conditions pass are emitted. This is not branching — every applicable event fires.
+
+**Outcome** (list or object, required): Assertions that must hold after state change.
+- Flat form: list of assertions that apply to every success:
+  ```yaml
+  Outcome:
+    - state-is-placed
+    - placed-at-recorded
+  ```
+- Keyed form: `_always` block for universal assertions, plus event-keyed blocks for conditional assertions:
+  ```yaml
+  Outcome:
+    _always:
+      - state-is-placed
+    HighValueOrderFlagged:
+      - requires-manual-review
+  ```
+
+## 3. Process Format
+
+A process spec describes cross-aggregate coordination. One file per process manager. One entry per reaction.
+
+### 3.1 Top-Level Structure
+
+```yaml
+ubispec: process/v1.0              # required — format and version
+process: OrderFulfillmentManager   # required — process manager name, PascalCase
+reacts_to: [Order, Payment]        # required — deciders whose events trigger reactions
+emits_to: [Inventory, Payment]     # required — deciders that receive dispatched commands
+model: "./model.ts"                # required — path to domain types
+
+state:                             # optional — only for stateful sagas
+  accumulated: "Map<string, Event>"
+
+common:                            # optional — reusable predicates
+  payment-was-captured: "rm.ctx.paymentStatus === 'captured'"
+
+reactions:                         # required — list of reactions
+  - When: ...
+```
+
+### 3.2 Reaction Entry
+
+```yaml
+- When: OrderPlaced                # trigger — see §3.3 for forms
+  From: Order                      # source decider
+  trigger: automated               # optional — automated (default) or policy
+  actor: ReviewTeam                # optional — who fulfills a policy trigger
+  And:                             # optional — guard constraints
+    - order-is-valid
+  Then:                            # required — commands to dispatch
+    - ReserveInventory -> Inventory
+    - InitiatePaymentCapture -> Payment
+  Outcome:                         # required — assertions
+    - reserve-before-pay
+```
+
+### 3.3 When — Trigger Forms
+
+Three forms:
+
+**Scalar** — single event, single source:
+```yaml
+When: OrderPlaced
+From: Order
+# rm.event is OrderPlaced, concrete type
+```
+
+**Any (OR)** — one of several events from the same source:
+```yaml
+When:
+  any: [AssessmentSubmittedFullyMet, AssessmentSubmittedWithGaps]
+From: SelfAssessment
+# rm.event is discriminated union, narrow with .kind
+```
+
+**All (AND)** — wait for all events, typically cross-decider:
+```yaml
+When:
+  all:
+    - PaymentConfirmed from Payment
+    - InventoryReserved from Inventory
+correlate: orderId
+# rm.events.PaymentConfirmed — concrete, keyed by event name
+# rm.events.InventoryReserved — concrete, keyed by event name
+```
+
+All triggers: `correlate` field specifies how events are matched to the same instance. Runtime handles event accumulation. The spec describes the completed state — what happens when all events are present.
+
+### 3.4 Then — Command Dispatch
+
+Commands are targeted: `CommandName -> DeciderName`.
+
+```yaml
+# Scalar — single command
+Then: ReserveInventory -> Inventory
+
+# List — multiple commands, unconditional and conditional
+Then:
+  - ReserveInventory -> Inventory
+  - InitiateRefund -> Payment:
+      - payment-was-captured: rm.ctx
+  - SendNotification -> Notification
+```
+
+Same additive semantics as lifecycle events: all commands whose conditions pass are dispatched.
+
+### 3.5 Trigger Types
+
+**trigger: automated** (default): The runtime executes the dispatched commands when the triggering event arrives. No human action needed. This is a hard-wired link.
+
+**trigger: policy**: Expresses a causal expectation — this event creates the need for that command — but nothing executes it automatically. A human or external process must fulfill it. Use `actor` to name who.
+
+```yaml
+- When: OrderFlagged
+  From: Order
+  trigger: policy
+  actor: ReviewTeam
+  Then: ReviewOrder -> Order
+```
+
+When trigger is policy, the `actor` field is required.
+
+## 4. Predicates
+
+Predicates are the atomic elements of constraints (And), event conditions (Then), and assertions (Outcome). Every predicate has a **name**. The value is optional.
+
+### 4.1 Four Detail Levels
+
+```yaml
+- order-is-draft                                          # Level 1: Name only
+- order-is-draft: dm.state                                # Level 2: Scope
+- order-is-draft: "Order must be in Draft status"         # Level 3: Prose
+- order-is-draft: "dm.state.status.kind === 'Draft'"      # Level 4: Expression
+```
+
+**Level 1 — Name only**: The constraint exists. The name says what it means. Valid and complete for domain validation.
+
+**Level 2 — Scope annotation**: Names which data sources are involved. Reveals architecture: which constraints are pure (dm.state), which require external lookup (dm.ctx), which compare before/after (om.state vs dm.state).
+
+**Level 3 — Prose description**: Natural language with optional scope. Documentation-ready.
+
+**Level 4 — Executable expression**: Machine-evaluable. Can validate against model, generate tests, generate implementation.
+
+All four levels are valid UbiSpec. Levels can be mixed within a single spec. This is not incomplete-to-complete — each level serves its audience.
+
+### 4.2 Predicate Forms
+
+A predicate entry is either:
+- A bare string (name only, or common reference): `- order-is-draft`
+- An object with one key (name → value): `- order-is-draft: "dm.state.status.kind === 'Draft'"`
+
+### 4.3 Common Predicates
+
+Define once in the `common` section, reference by bare name:
+
+```yaml
+common:
+  order-is-draft: "dm.state.status.kind === 'Draft'"
+  has-lines: "dm.state.lines.length > 0"
+
+lifecycle:
+  - When: PlaceOrder
+    And:
+      - order-is-draft          # resolved from common
+      - has-lines               # resolved from common
+      - all-products-in-stock   # inline, defined locally or name-only
+```
+
+## 5. Namespaces
+
+Namespaces describe where behavioural data lives. They are the core vocabulary of UbiSpec and are language-agnostic.
+
+### 5.1 Decision Model (dm) — Lifecycle Context
+
+Used in And constraints, Then conditions, and Outcome assertions.
+
+| Namespace | Contains | Example |
+|-----------|----------|---------|
+| `dm.cmd` | Command payload — what the user sent | `dm.cmd.effectiveDate` |
+| `dm.state` | Current aggregate state — what we know now | `dm.state.status.kind` |
+| `dm.ctx` | External context — resolved by shell before deciding | `dm.ctx.isNationalAuthority` |
+
+Every `dm.ctx` reference is a **shell contract**: something external must be resolved before the logic runs. This is an integration point.
+
+### 5.2 Outcome Model (om) — Lifecycle Verification
+
+Used in Outcome assertions. Also has access to `dm.state` (before) and `dm.cmd` (original input) for comparison.
+
+| Namespace | Contains | Example |
+|-----------|----------|---------|
+| `om.state` | State after evolve — what changed | `om.state.status.kind === 'Active'` |
+| `om.evts` | Events produced — what happened | `om.evts.find(e => e.kind === 'X')` |
+
+### 5.3 Reaction Model (rm) — Process Context
+
+Used in process And constraints, Then conditions, and Outcome assertions.
+
+| Namespace | Contains | When |
+|-----------|----------|------|
+| `rm.event` | The triggering event | Scalar or any triggers |
+| `rm.events` | All triggering events, keyed by name | All triggers only |
+| `rm.ctx` | External context — read-model queries | Always |
+
+## 6. Implicit Failure
+
+UbiSpec only describes success paths. When any constraint in And fails, the system produces a standard DecisionFailed event:
+
+```
+{ kind: 'DecisionFailed', decision: 'PlaceOrder', failed: ['has-lines'] }
+```
+
+The constraint names ARE the failure reasons. Do not specify failure paths in the spec. Do not create separate events for failures.
+
+If multiple constraints fail, all failed names appear in the array:
+
+```
+{ kind: 'DecisionFailed', decision: 'PlaceOrder', failed: ['order-is-draft', 'has-lines'] }
+```
+
+## 7. Naming Conventions
+
+| Element | Convention | Examples |
+|---------|-----------|----------|
+| Decider/aggregate | PascalCase | `Order`, `Registry`, `Laboratory` |
+| Process manager | PascalCase | `OrderFulfillmentManager` |
+| Command | PascalCase | `PlaceOrder`, `ApproveRegistry` |
+| Event | PascalCase | `OrderPlaced`, `RegistryApproved` |
+| Predicate | kebab-case | `order-is-draft`, `has-lines` |
+| Identity field | camelCase | `orderId`, `registryId` |
+| Actor | PascalCase | `Customer`, `NationalAuthority` |
+
+Events are typically past-tense forms of the command: `PlaceOrder` → `OrderPlaced`. Commands are imperative. Events are factual.
+
+## 8. Complete Lifecycle Example
+
+```yaml
+ubispec: lifecycle/v1.0
+decider: Order
+identity: orderId
+model: "./model.ts"
+
+common:
+  order-is-draft: "dm.state.status.kind === 'Draft'"
+
+lifecycle:
+  - When: CreateOrder
+    actor: Customer
+    And:
+      - valid-customer: dm.cmd
+    Then: OrderCreated
+    Outcome:
+      - state-is-draft: om.state
+      - customer-set: [om.state, dm.cmd]
+
+  - When: AddLineItem
+    actor: Customer
+    And:
+      - order-is-draft
+      - product-exists: dm.ctx
+      - positive-quantity: dm.cmd
+    Then: LineItemAdded
+    Outcome:
+      - line-present: om.state
+      - status-unchanged: [om.state, dm.state]
+
+  - When: PlaceOrder
+    actor: Customer
+    And:
+      - order-is-draft
+      - has-lines: "dm.state.lines.length > 0"
+      - all-products-in-stock: dm.ctx
+    Then:
+      - OrderPlaced
+      - HighValueOrderFlagged:
+          - high-value: dm.ctx
+    Outcome:
+      _always:
+        - state-is-placed: "om.state.status.kind === 'Placed'"
+        - placed-at-recorded: om.state
+      HighValueOrderFlagged:
+        - requires-manual-review: om.state
+
+  - When: CancelOrder
+    actor: Customer
+    And:
+      - is-cancellable: dm.state
+      - has-reason: dm.cmd
+    Then:
+      - OrderCancelled
+      - InventoryReleased:
+          - had-reservation: dm.state
+    Outcome:
+      _always:
+        - state-is-cancelled: om.state
+        - reason-recorded: [om.state, dm.cmd]
+      InventoryReleased:
+        - reservation-cleared: om.state
+```
+
+## 9. Complete Process Example
+
+```yaml
+ubispec: process/v1.0
+process: OrderFulfillmentManager
+reacts_to: [Order, Payment, Inventory]
+emits_to: [Inventory, Payment, Fulfillment, Notification]
+model: "./model.ts"
+
+reactions:
+  - When: OrderPlaced
+    From: Order
+    trigger: automated
+    Then:
+      - ReserveInventory -> Inventory
+      - InitiatePaymentCapture -> Payment
+    Outcome:
+      - reserve-before-pay
+
+  - When: HighValueOrderFlagged
+    From: Order
+    trigger: policy
+    actor: ReviewTeam
+    Then: ReviewOrder -> Order
+
+  - When:
+      all:
+        - PaymentConfirmed from Payment
+        - InventoryReserved from Inventory
+    correlate: orderId
+    trigger: automated
+    Then: ScheduleShipment -> Fulfillment
+    Outcome:
+      - single-shipment
+
+  - When: OrderCancelled
+    From: Order
+    trigger: automated
+    Then:
+      - ReleaseInventory -> Inventory
+      - InitiateRefund -> Payment:
+          - payment-was-captured: rm.ctx
+      - SendNotification -> Notification
+```
+
+## 10. Common Mistakes
+
+**Don't specify failure paths.** No `OrderPlacementFailed` event. Failure is implicit from constraint names.
+
+**Don't branch in Then.** Then is additive — all events whose conditions pass are emitted. Don't use if/else logic. If you need mutually exclusive events, they should be different commands or use conditions that are naturally exclusive.
+
+**Don't put authorization logic in the lifecycle.** Authorization belongs in external systems. Use `dm.ctx` constraints for domain-relevant authorization checks (e.g., `reviewer-is-authorised`). Use `actor` as a documentation label, not an enforcement mechanism.
+
+**Don't duplicate model types in the spec.** The spec references the model via the `model` field. Types live in the model file. The spec describes behaviour, not shapes.
+
+**Don't skip outcomes.** Outcomes are what make the spec testable. "After PlaceOrder, the state is Placed" is an assertion. Without it, the spec only says what happens, not what must be true.
+
+**Don't confuse dm.state with dm.ctx.** `dm.state` is the aggregate's own state — self-contained, always available. `dm.ctx` is external — requires a lookup, may fail, is an integration point. If a constraint only needs the aggregate's state, use `dm.state`. If it needs to query something outside, use `dm.ctx`.
+
+**Don't use trigger: policy without actor.** If a reaction is a policy (not automated), name who is expected to fulfill it.
+
+## 11. Generating UbiSpec from Domain Context
+
+When generating UbiSpec from a domain description or conversation:
+
+1. Identify aggregates — nouns with lifecycles (created, changed, terminated).
+2. Identify commands per aggregate — what can happen to it in each state.
+3. Identify constraints per command — what must be true for it to succeed.
+4. Identify events per command — what changes as a result. Use past-tense of the command.
+5. Identify outcomes per command — what must be true after the state change.
+6. Identify cross-aggregate reactions — when an event on A triggers a command on B.
+7. Start with name-only predicates. Add scope annotations or expressions if the domain context provides enough detail.
+8. Validate: every command has at least one constraint and at least one outcome. Every conditional event has at least one condition. Every process reaction has a source (From or inline in all trigger).
+
+## 12. Schema URLs
+
+Lifecycle: https://mean-machine-gc.github.io/ubispec/schema/lifecycle.v1.0.schema.json
+Process: https://mean-machine-gc.github.io/ubispec/schema/process.v1.0.schema.json
+Spec index: https://mean-machine-gc.github.io/ubispec/spec/index.json

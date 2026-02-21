@@ -1,0 +1,18 @@
+---
+layout: null
+permalink: /llms.txt
+---
+# UbiSpec
+
+> Ubiquitous Behavioural Specification Format for Software Systems. A structured YAML format for capturing what a system does — which actions are possible, under what conditions, what happens as a result, and what must be true afterwards.
+
+## Docs
+
+- [Full LLM Reference](https://mean-machine-gc.github.io/ubispec/llms-full.txt): Complete specification in one document. Fetch this for full context.
+- [Spec Index](https://mean-machine-gc.github.io/ubispec/spec/index.json): Machine-readable index of current spec versions and schema URLs.
+- [Lifecycle Spec](https://mean-machine-gc.github.io/ubispec/spec/lifecycle/latest): Lifecycle format reference (HTML).
+- [Process Spec](https://mean-machine-gc.github.io/ubispec/spec/process/latest): Process format reference (HTML).
+- [Lifecycle JSON Schema](https://mean-machine-gc.github.io/ubispec/schema/lifecycle.v1.0.schema.json): JSON Schema for lifecycle validation.
+- [Process JSON Schema](https://mean-machine-gc.github.io/ubispec/schema/process.v1.0.schema.json): JSON Schema for process validation.
+- [Examples](https://mean-machine-gc.github.io/ubispec/examples): E-commerce and laboratory domain examples.
+- [Playground](https://mean-machine-gc.github.io/ubispec/playground): Interactive browser editor with live visualization.
