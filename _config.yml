@@ -1,9 +1,10 @@
 title: UbiSpec
 description: Behavioural Specification Format for Software Systems
-remote_theme: just-the-docs/just-the-docs@v0.10.1
+theme: just-the-docs
+remote_theme: just-the-docs/just-the-docs
 
-plugins:
-  - jekyll-remote-theme
+#plugins:
+  #- jekyll-remote-theme
 
 # Serve schema files so they're accessible at username.github.io/bspec/schema/...
 include:
@@ -36,3 +37,20 @@ kramdown:
   syntax_highlighter_opts:
     block:
       line_numbers: false
+
+mermaid:
+  # Version of mermaid library
+  # Pick an available version from https://cdn.jsdelivr.net/npm/mermaid/
+  version: "9.1.3"
+
+callouts:
+  warning:
+    title: Warning
+    color: yellow
+  correct: 
+    title: Correct
+    color: green
+  wrong: 
+    title: wrong
+    color: red
+

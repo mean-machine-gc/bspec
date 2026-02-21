@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UbiSpec Playground</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --bg: #0e0e10;
+    --surface: #18181b;
+    --surface-2: #1e1e22;
+    --border: #2a2a2e;
+    --border-hover: #3a3a3e;
+    --text: #e4e4e7;
+    --text-muted: #71717a;
+    --text-dim: #52525b;
+    --accent: #f59e0b;
+    --accent-dim: rgba(245, 158, 11, 0.15);
+    --accent-2: #3b82f6;
+    --accent-2-dim: rgba(59, 130, 246, 0.15);
+    --green: #22c55e;
+    --green-dim: rgba(34, 197, 94, 0.12);
+    --red: #ef4444;
+    --red-dim: rgba(239, 68, 68, 0.12);
+    --purple: #a78bfa;
+    --purple-dim: rgba(167, 139, 250, 0.12);
+    --cyan: #22d3ee;
+    --radius: 6px;
+    --font: 'IBM Plex Sans', -apple-system, sans-serif;
+    --mono: 'IBM Plex Mono', 'Fira Code', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Header ── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    height: 48px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    background: var(--surface);
+  }
+
+  .logo {
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: -0.02em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .logo span {
+    color: var(--accent);
+  }
+
+  .logo .tag {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    padding: 2px 6px;
+    border-radius: 3px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  select, button.action-btn {
+    font-family: var(--font);
+    font-size: 12px;
+    font-weight: 500;
+    background: var(--surface-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 6px 10px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+
+  select:hover, button.action-btn:hover {
+    border-color: var(--border-hover);
+  }
+
+  select:focus, button.action-btn:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  /* ── Main layout ── */
+  .workspace {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* ── Editor panel ── */
+  .editor-panel {
+    width: 45%;
+    min-width: 350px;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--border);
+  }
+
+  .editor-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+    height: 36px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .editor-header .filename {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .editor-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+  }
+
+  .status-dot.error { background: var(--red); }
+
+  #editor-container {
+    flex: 1;
+    overflow: hidden;
+  }
+
+  textarea#editor {
+    width: 100%;
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    border: none;
+    padding: 16px;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.6;
+    resize: none;
+    tab-size: 2;
+    outline: none;
+  }
+
+  /* ── Preview panel ── */
+  .preview-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .tab-bar {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    height: 36px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    padding: 0 4px;
+    flex-shrink: 0;
+  }
+
+  .tab {
+    font-family: var(--font);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: none;
+    border: none;
+    padding: 0 14px;
+    height: 36px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s, border-color 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .tab:hover { color: var(--text); }
+
+  .tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  .tab .count {
+    font-size: 10px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    padding: 0 5px;
+    border-radius: 3px;
+    color: var(--text-dim);
+  }
+
+  .tab.active .count {
+    background: var(--accent-dim);
+    border-color: transparent;
+    color: var(--accent);
+  }
+
+  .preview-content {
+    flex: 1;
+    overflow: auto;
+    padding: 0;
+  }
+
+  .preview-content::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .preview-content::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 3px;
+  }
+
+  /* ── View containers ── */
+  .view { display: none; height: 100%; }
+  .view.active { display: flex; flex-direction: column; }
+
+  /* ── Topology view ── */
+  #topology-view { position: relative; }
+
+  #topology-svg {
+    width: 100%;
+    height: 100%;
+    cursor: grab;
+  }
+
+  #topology-svg:active { cursor: grabbing; }
+
+  .topo-node circle {
+    stroke-width: 2px;
+    cursor: pointer;
+    transition: r 0.2s;
+  }
+
+  .topo-node:hover circle { r: 28; }
+
+  .topo-node text {
+    font-family: var(--font);
+    font-size: 11px;
+    font-weight: 600;
+    fill: var(--text);
+    pointer-events: none;
+    text-anchor: middle;
+    dominant-baseline: central;
+  }
+
+  .topo-link {
+    stroke-width: 1.5px;
+    fill: none;
+    marker-end: url(#arrowhead);
+  }
+
+  .topo-link-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    fill: var(--text-dim);
+    pointer-events: none;
+  }
+
+  .topo-legend {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    display: flex;
+    gap: 16px;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .topo-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .topo-legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 2px solid;
+  }
+
+  /* ── Decision table view ── */
+  #decision-view {
+    padding: 20px;
+    overflow: auto;
+  }
+
+  .dt-command-name {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .dt-command-name .decider-badge {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--accent);
+    background: var(--accent-dim);
+    padding: 2px 7px;
+    border-radius: 3px;
+  }
+
+  .dt-meta {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+  }
+
+  table.dt {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin-bottom: 32px;
+  }
+
+  table.dt th {
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+    padding: 8px 10px;
+    border-bottom: 2px solid var(--border);
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+  }
+
+  table.dt th.condition { color: var(--accent); }
+  table.dt th.event-col { color: var(--green); }
+
+  table.dt td {
+    padding: 7px 10px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  table.dt tr.success td { background: var(--green-dim); }
+  table.dt tr.failure td { background: var(--red-dim); }
+
+  .pass { color: var(--green); font-weight: 600; }
+  .fail { color: var(--red); font-weight: 600; }
+  .skip { color: var(--text-dim); }
+
+  .event-tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin: 1px 2px;
+  }
+
+  .event-tag.emitted {
+    background: var(--green-dim);
+    color: var(--green);
+    border: 1px solid rgba(34, 197, 94, 0.25);
+  }
+
+  .event-tag.failed {
+    background: var(--red-dim);
+    color: var(--red);
+    border: 1px solid rgba(239, 68, 68, 0.25);
+  }
+
+  /* ── Scenarios view ── */
+  #scenarios-view {
+    padding: 20px;
+    overflow: auto;
+  }
+
+  .scenario-group-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .scenario-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    transition: border-color 0.15s;
+  }
+
+  .scenario-card:hover { border-color: var(--border-hover); }
+
+  .scenario-id {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-right: 8px;
+  }
+
+  .scenario-id.pass { background: var(--green-dim); color: var(--green); }
+  .scenario-id.fail { background: var(--red-dim); color: var(--red); }
+
+  .scenario-title {
+    font-size: 13px;
+    font-weight: 500;
+    display: inline;
+  }
+
+  .scenario-details {
+    margin-top: 10px;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 4px 12px;
+    font-size: 12px;
+  }
+
+  .scenario-label {
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  .scenario-value {
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 11px;
+  }
+
+  /* ── Checklist view ── */
+  #checklist-view {
+    padding: 20px;
+    overflow: auto;
+  }
+
+  .checklist-command {
+    margin-bottom: 28px;
+  }
+
+  .checklist-heading {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .checklist-section {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 12px 0 6px 0;
+  }
+
+  .checklist-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 5px 0;
+    font-size: 13px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .checklist-item input[type="checkbox"] {
+    margin-top: 3px;
+    accent-color: var(--accent);
+  }
+
+  .checklist-item label {
+    cursor: pointer;
+    line-height: 1.4;
+  }
+
+  .checklist-item .conditional {
+    color: var(--text-muted);
+    font-style: italic;
+    font-size: 12px;
+  }
+
+  /* ── Empty state ── */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-dim);
+    text-align: center;
+    padding: 40px;
+  }
+
+  .empty-state .icon {
+    font-size: 32px;
+    margin-bottom: 12px;
+    opacity: 0.3;
+  }
+
+  .empty-state p {
+    font-size: 13px;
+    line-height: 1.6;
+    max-width: 300px;
+  }
+
+  /* ── Error bar ── */
+  .error-bar {
+    background: var(--red-dim);
+    border-top: 1px solid rgba(239, 68, 68, 0.3);
+    padding: 8px 16px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--red);
+    flex-shrink: 0;
+    display: none;
+  }
+
+  .error-bar.visible { display: block; }
+
+  /* ── Resize handle ── */
+  .resize-handle {
+    width: 4px;
+    cursor: col-resize;
+    background: var(--border);
+    transition: background 0.15s;
+    flex-shrink: 0;
+  }
+
+  .resize-handle:hover, .resize-handle.active {
+    background: var(--accent);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <span>Ubi</span>Spec <span class="tag">Playground</span>
+  </div>
+  <div class="header-actions">
+    <select id="template-select">
+      <option value="">Load template…</option>
+      <optgroup label="Lifecycle">
+        <option value="lifecycle-order">Order (e-commerce)</option>
+        <option value="lifecycle-registry">Registry (governance)</option>
+      </optgroup>
+      <optgroup label="Process">
+        <option value="process-fulfillment">Order Fulfillment</option>
+        <option value="process-assessment">Assessment Lifecycle</option>
+      </optgroup>
+      <optgroup label="Combined">
+        <option value="combined-ecommerce">Full E-commerce System</option>
+      </optgroup>
+    </select>
+  </div>
+</header>
+
+<div class="workspace">
+  <div class="editor-panel" id="editor-panel">
+    <div class="editor-header">
+      <span class="filename" id="filename">untitled.lifecycle.ubispec.yaml</span>
+      <div class="editor-status">
+        <div class="status-dot" id="status-dot"></div>
+        <span id="status-text">Valid</span>
+      </div>
+    </div>
+    <div id="editor-container">
+      <textarea id="editor" spellcheck="false"></textarea>
+    </div>
+  </div>
+
+  <div class="resize-handle" id="resize-handle"></div>
+
+  <div class="preview-panel">
+    <div class="tab-bar">
+      <button class="tab active" data-view="topology">Topology <span class="count" id="count-topology">0</span></button>
+      <button class="tab" data-view="decision">Decisions <span class="count" id="count-decision">0</span></button>
+      <button class="tab" data-view="scenarios">Scenarios <span class="count" id="count-scenarios">0</span></button>
+      <button class="tab" data-view="checklist">Checklist <span class="count" id="count-checklist">0</span></button>
+    </div>
+    <div class="preview-content">
+      <div class="view active" id="topology-view">
+        <svg id="topology-svg"></svg>
+        <div class="topo-legend">
+          <div class="topo-legend-item"><div class="topo-legend-dot" style="border-color: var(--accent); background: var(--accent-dim);"></div> Decider</div>
+          <div class="topo-legend-item"><div class="topo-legend-dot" style="border-color: var(--purple); background: var(--purple-dim);"></div> Process</div>
+          <div class="topo-legend-item"><div class="topo-legend-dot" style="border-color: var(--cyan); background: transparent;"></div> AND join</div>
+        </div>
+      </div>
+      <div class="view" id="decision-view"></div>
+      <div class="view" id="scenarios-view"></div>
+      <div class="view" id="checklist-view"></div>
+    </div>
+    <div class="error-bar" id="error-bar"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+<script>
+// ════════════════════════════════════════════════════════════════
+// TEMPLATES
+// ════════════════════════════════════════════════════════════════
+const TEMPLATES = {
+'lifecycle-order': `ubispec: lifecycle/v1
+decider: Order
+identity: orderId
+model: "./model.ts"
+
+lifecycle:
+  - When: CreateOrder
+    And:
+      - valid-customer: dm.cmd
+    Then: OrderCreated
+    Outcome:
+      - state-is-draft: om.state
+      - customer-set: [om.state, dm.cmd]
+
+  - When: AddLineItem
+    And:
+      - order-is-draft: dm.state
+      - product-exists: dm.ctx
+      - positive-quantity: dm.cmd
+    Then: LineItemAdded
+    Outcome:
+      - line-present: om.state
+      - status-unchanged: [om.state, dm.state]
+
+  - When: PlaceOrder
+    And:
+      - order-is-draft: dm.state
+      - has-lines: dm.state
+      - all-products-in-stock: dm.ctx
+    Then:
+      - OrderPlaced
+      - HighValueOrderFlagged:
+          - high-value: dm.ctx
+    Outcome:
+      _always:
+        - state-is-placed: om.state
+        - placed-at-recorded: om.state
+      HighValueOrderFlagged:
+        - requires-manual-review: om.state
+
+  - When: ConfirmOrder
+    And:
+      - order-is-placed: dm.state
+    Then: OrderConfirmed
+    Outcome:
+      - state-is-confirmed: om.state
+
+  - When: ShipOrder
+    And:
+      - order-is-confirmed: dm.state
+      - has-tracking-number: dm.cmd
+    Then: OrderShipped
+    Outcome:
+      - state-is-shipped: om.state
+      - tracking-recorded: [om.state, dm.cmd]
+
+  - When: DeliverOrder
+    And:
+      - order-is-shipped: dm.state
+    Then: OrderDelivered
+    Outcome:
+      - state-is-delivered: om.state
+      - delivered-at-recorded: om.state
+
+  - When: CancelOrder
+    And:
+      - is-cancellable: dm.state
+      - has-reason: dm.cmd
+    Then:
+      - OrderCancelled
+      - InventoryReleased:
+          - had-reservation: dm.state
+    Outcome:
+      _always:
+        - state-is-cancelled: om.state
+        - reason-recorded: [om.state, dm.cmd]
+      InventoryReleased:
+        - reservation-cleared: om.state`,
+
+'lifecycle-registry': `ubispec: lifecycle/v1
+decider: Registry
+identity: registryId
+model: "./model.ts"
+
+lifecycle:
+  - When: CreateDraftRegistry
+    And:
+      - valid-name: dm.cmd
+      - valid-area: dm.cmd
+    Then: DraftRegistryCreated
+    Outcome:
+      - state-is-draft: om.state
+      - name-set: [om.state, dm.cmd]
+      - area-set: [om.state, dm.cmd]
+
+  - When: AddProfile
+    And:
+      - registry-is-draft: dm.state
+      - profile-id-unique: [dm.cmd, dm.state]
+      - valid-tier: dm.cmd
+    Then: ProfileAdded
+    Outcome:
+      - profile-in-registry: om.state
+      - profiles-grew: [om.state, dm.state]
+
+  - When: SubmitForReview
+    And:
+      - registry-is-draft: dm.state
+      - has-profiles: dm.state
+      - all-profiles-complete: dm.ctx
+    Then: RegistrySubmitted
+    Outcome:
+      - state-is-submitted: om.state
+      - submitted-at-recorded: om.state
+
+  - When: ApproveRegistry
+    And:
+      - registry-is-submitted: dm.state
+      - reviewer-is-authorised: dm.ctx
+      - no-unresolved-comments: dm.state
+    Then:
+      - RegistryApproved
+      - PreviousRegistryArchived:
+          - has-active-registry: dm.ctx
+    Outcome:
+      _always:
+        - state-is-active: om.state
+        - effective-date-set: [om.state, dm.cmd]
+      PreviousRegistryArchived:
+        - archival-target-correct: [om.evts, dm.ctx]
+
+  - When: RejectRegistry
+    And:
+      - registry-is-submitted: dm.state
+      - reviewer-is-authorised: dm.ctx
+      - has-rejection-reason: dm.cmd
+    Then: RegistryRejected
+    Outcome:
+      - state-is-rejected: om.state
+      - rejection-reason-recorded: [om.state, dm.cmd]`,
+
+'process-fulfillment': `ubispec: process/v1
+process: OrderFulfillmentManager
+reacts_to: [Order, Payment, Inventory]
+emits_to: [Inventory, Payment, Fulfillment, Notification]
+model: "./model.ts"
+
+reactions:
+  - When: OrderPlaced
+    From: Order
+    Then:
+      - ReserveInventory -> Inventory
+      - InitiatePaymentCapture -> Payment
+    Outcome:
+      - reserve-before-pay
+
+  - When: HighValueOrderFlagged
+    From: Order
+    Then: SendReviewNotification -> Notification
+
+  - When:
+      all:
+        - PaymentConfirmed from Payment
+        - InventoryReserved from Inventory
+    correlate: orderId
+    Then: ScheduleShipment -> Fulfillment
+    Outcome:
+      - single-command
+
+  - When: OrderShipped
+    From: Order
+    Then: SendNotification -> Notification
+
+  - When: OrderDelivered
+    From: Order
+    Then: SendNotification -> Notification
+
+  - When: OrderCancelled
+    From: Order
+    Then:
+      - ReleaseInventory -> Inventory
+      - InitiateRefund -> Payment:
+          - payment-was-captured: rm.ctx
+      - SendNotification -> Notification`,
+
+'process-assessment': `ubispec: process/v1
+process: AssessmentLifecycleManager
+reacts_to: [SelfAssessment]
+emits_to: [Laboratory]
+model: "./model.ts"
+
+reactions:
+  - When:
+      any: [AssessmentSubmittedFullyMet, AssessmentSubmittedWithGaps]
+    From: SelfAssessment
+    Then:
+      - UpdateAssignment -> Laboratory
+      - ForwardGaps -> Laboratory:
+          - has-gaps
+
+  - When: AssessmentConfirmed
+    From: SelfAssessment
+    Then: UpdateAssignment -> Laboratory
+
+  - When: AssessmentAdjusted
+    From: SelfAssessment
+    And:
+      - adjusted-profile-exists: rm.ctx
+    Then:
+      - WithdrawAssignment -> Laboratory
+      - AssignProfile -> Laboratory
+
+  - When: AssessmentCancelled
+    From: SelfAssessment
+    Then:
+      - WithdrawAssignment -> Laboratory:
+          - has-active-assignment: rm.ctx`,
+
+'combined-ecommerce': `# ── Order Lifecycle ──
+ubispec: lifecycle/v1
+decider: Order
+identity: orderId
+
+lifecycle:
+  - When: PlaceOrder
+    And:
+      - order-is-draft: dm.state
+      - has-lines: dm.state
+      - all-products-in-stock: dm.ctx
+    Then:
+      - OrderPlaced
+      - HighValueOrderFlagged:
+          - high-value: dm.ctx
+    Outcome:
+      _always:
+        - state-is-placed: om.state
+
+  - When: CancelOrder
+    And:
+      - is-cancellable: dm.state
+    Then: OrderCancelled
+    Outcome:
+      - state-is-cancelled: om.state
+
+---
+# ── Fulfillment Process ──
+ubispec: process/v1
+process: OrderFulfillmentManager
+reacts_to: [Order, Payment, Inventory]
+emits_to: [Inventory, Payment, Fulfillment, Notification]
+
+reactions:
+  - When: OrderPlaced
+    From: Order
+    Then:
+      - ReserveInventory -> Inventory
+      - InitiatePaymentCapture -> Payment
+
+  - When:
+      all:
+        - PaymentConfirmed from Payment
+        - InventoryReserved from Inventory
+    correlate: orderId
+    Then: ScheduleShipment -> Fulfillment
+
+  - When: OrderCancelled
+    From: Order
+    Then:
+      - ReleaseInventory -> Inventory
+      - InitiateRefund -> Payment:
+          - payment-was-captured: rm.ctx
+      - SendNotification -> Notification`
+};
+
+// ════════════════════════════════════════════════════════════════
+// PARSER
+// ════════════════════════════════════════════════════════════════
+function parseSpecs(yamlText) {
+  const specs = { lifecycles: [], processes: [] };
+  // Support multi-document YAML (--- separator)
+  const docs = yamlText.split(/^---$/m).map(s => s.trim()).filter(Boolean);
+
+  for (const doc of docs) {
+    try {
+      const parsed = jsyaml.load(doc);
+      if (!parsed || !parsed.ubispec) continue;
+      if (parsed.ubispec.startsWith('lifecycle')) {
+        specs.lifecycles.push(parsed);
+      } else if (parsed.ubispec.startsWith('process')) {
+        specs.processes.push(parsed);
+      }
+    } catch (e) {
+      throw e;
+    }
+  }
+  return specs;
+}
+
+function extractTopology(specs) {
+  const nodes = new Map(); // name -> { type, id }
+  const edges = [];        // { source, target, label, type }
+  const joins = [];        // { events: [{event, from}], correlate, target }
+
+  // Deciders from lifecycles
+  for (const lc of specs.lifecycles) {
+    const name = lc.decider;
+    if (!nodes.has(name)) nodes.set(name, { id: name, type: 'decider' });
+  }
+
+  // Process managers and their connections
+  for (const pm of specs.processes) {
+    const pmName = pm.process;
+    nodes.set(pmName, { id: pmName, type: 'process' });
+
+    // Ensure all referenced deciders exist as nodes
+    for (const d of (pm.reacts_to || [])) {
+      if (!nodes.has(d)) nodes.set(d, { id: d, type: 'decider' });
+    }
+    for (const d of (pm.emits_to || [])) {
+      if (!nodes.has(d)) nodes.set(d, { id: d, type: 'decider' });
+    }
+
+    for (const reaction of (pm.reactions || [])) {
+      const when = reaction.When;
+
+      // Parse trigger
+      if (typeof when === 'string') {
+        // Scalar
+        edges.push({ source: reaction.From, target: pmName, label: when, type: 'event' });
+      } else if (when && when.any) {
+        for (const evt of when.any) {
+          edges.push({ source: reaction.From, target: pmName, label: evt, type: 'event' });
+        }
+      } else if (when && when.all) {
+        const joinEvents = [];
+        for (const item of when.all) {
+          if (typeof item === 'string') {
+            // "EventName from DeciderName" or just "EventName"
+            const match = item.match(/^(\w+)\s+from\s+(\w+)$/);
+            if (match) {
+              joinEvents.push({ event: match[1], from: match[2] });
+            } else {
+              joinEvents.push({ event: item, from: reaction.From });
+            }
+          }
+        }
+        const joinId = `join_${pmName}_${joinEvents.map(j => j.event).join('_')}`;
+        nodes.set(joinId, { id: joinId, type: 'join', label: reaction.correlate || '' });
+        for (const je of joinEvents) {
+          edges.push({ source: je.from, target: joinId, label: je.event, type: 'event' });
+        }
+        edges.push({ source: joinId, target: pmName, label: '∧', type: 'join' });
+        joins.push({ id: joinId, events: joinEvents, correlate: reaction.correlate });
+      }
+
+      // Parse dispatched commands
+      const then = reaction.Then;
+      if (typeof then === 'string') {
+        const m = then.match(/^(\w+)\s*->\s*(\w+)$/);
+        if (m) edges.push({ source: pmName, target: m[2], label: m[1], type: 'command' });
+      } else if (Array.isArray(then)) {
+        for (const item of then) {
+          let cmdStr = typeof item === 'string' ? item : Object.keys(item)[0];
+          const m = cmdStr.match(/^(\w+)\s*->\s*(\w+)$/);
+          if (m) edges.push({ source: pmName, target: m[2], label: m[1], type: 'command' });
+        }
+      }
+    }
+  }
+
+  return { nodes: Array.from(nodes.values()), edges, joins };
+}
+
+function extractDecisions(specs) {
+  const decisions = [];
+  for (const lc of specs.lifecycles) {
+    for (const entry of (lc.lifecycle || [])) {
+      const constraints = [];
+      if (entry.And) {
+        for (const c of entry.And) {
+          if (typeof c === 'string') constraints.push(c);
+          else constraints.push(Object.keys(c)[0]);
+        }
+      }
+
+      const events = [];
+      const then = entry.Then;
+      if (typeof then === 'string') {
+        events.push({ name: then, conditions: [] });
+      } else if (Array.isArray(then)) {
+        for (const item of then) {
+          if (typeof item === 'string') {
+            events.push({ name: item, conditions: [] });
+          } else {
+            const name = Object.keys(item)[0];
+            const conds = (item[name] || []).map(c => typeof c === 'string' ? c : Object.keys(c)[0]);
+            events.push({ name, conditions: conds });
+          }
+        }
+      }
+
+      const outcomes = { _always: [], keyed: {} };
+      if (entry.Outcome) {
+        if (Array.isArray(entry.Outcome)) {
+          outcomes._always = entry.Outcome.map(o => typeof o === 'string' ? o : Object.keys(o)[0]);
+        } else {
+          for (const [key, val] of Object.entries(entry.Outcome)) {
+            const items = (val || []).map(o => typeof o === 'string' ? o : Object.keys(o)[0]);
+            if (key === '_always') outcomes._always = items;
+            else outcomes.keyed[key] = items;
+          }
+        }
+      }
+
+      decisions.push({
+        decider: lc.decider,
+        command: entry.When,
+        constraints,
+        events,
+        outcomes
+      });
+    }
+  }
+  return decisions;
+}
+
+function generateScenarios(decisions) {
+  const scenarios = [];
+  for (const d of decisions) {
+    const prefix = d.command.substring(0, 3).toUpperCase();
+    let idx = 1;
+
+    // Happy path: all constraints pass, all events fire
+    const allEvents = d.events.map(e => e.name);
+    scenarios.push({
+      id: `${prefix}-${String(idx++).padStart(2, '0')}`,
+      command: d.command,
+      decider: d.decider,
+      type: 'success',
+      title: 'Happy path' + (d.events.some(e => e.conditions.length) ? ' (all conditions met)' : ''),
+      setup: d.constraints.map(c => `${kebabToSentence(c)}: ✓`),
+      events: allEvents,
+      outcomes: [...d.outcomes._always, ...Object.values(d.outcomes.keyed).flat()]
+    });
+
+    // Conditional event variants
+    const conditionalEvents = d.events.filter(e => e.conditions.length > 0);
+    if (conditionalEvents.length > 0) {
+      const unconditionalEvents = d.events.filter(e => e.conditions.length === 0).map(e => e.name);
+      scenarios.push({
+        id: `${prefix}-${String(idx++).padStart(2, '0')}`,
+        command: d.command,
+        decider: d.decider,
+        type: 'success',
+        title: `Only unconditional events (${conditionalEvents.map(e => kebabToSentence(e.conditions[0]) + ': ✗').join(', ')})`,
+        setup: d.constraints.map(c => `${kebabToSentence(c)}: ✓`),
+        events: unconditionalEvents,
+        outcomes: d.outcomes._always
+      });
+    }
+
+    // Failure: one per constraint
+    for (const c of d.constraints) {
+      scenarios.push({
+        id: `${prefix}-${String(idx++).padStart(2, '0')}`,
+        command: d.command,
+        decider: d.decider,
+        type: 'failure',
+        title: `Rejected: ${kebabToSentence(c)}`,
+        setup: [`${kebabToSentence(c)}: ✗`],
+        events: [`DecisionFailed [${c}]`],
+        outcomes: ['State unchanged']
+      });
+    }
+  }
+  return scenarios;
+}
+
+function kebabToSentence(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1).replace(/-/g, ' ');
+}
+
+// ════════════════════════════════════════════════════════════════
+// D3 TOPOLOGY RENDERER
+// ════════════════════════════════════════════════════════════════
+let simulation = null;
+
+function renderTopology(topology) {
+  const svg = d3.select('#topology-svg');
+  svg.selectAll('*').remove();
+
+  const container = document.getElementById('topology-view');
+  const width = container.clientWidth;
+  const height = container.clientHeight;
+
+  svg.attr('viewBox', [0, 0, width, height]);
+
+  if (topology.nodes.length === 0) {
+    svg.append('text')
+      .attr('x', width / 2).attr('y', height / 2)
+      .attr('text-anchor', 'middle')
+      .attr('fill', '#52525b')
+      .attr('font-family', 'IBM Plex Sans')
+      .attr('font-size', 13)
+      .text('Add a process spec to see the topology');
+    return;
+  }
+
+  // Defs
+  const defs = svg.append('defs');
+  defs.append('marker')
+    .attr('id', 'arrowhead')
+    .attr('viewBox', '0 -5 10 10')
+    .attr('refX', 32).attr('refY', 0)
+    .attr('markerWidth', 6).attr('markerHeight', 6)
+    .attr('orient', 'auto')
+    .append('path')
+    .attr('d', 'M0,-4L10,0L0,4')
+    .attr('fill', '#3a3a3e');
+
+  defs.append('marker')
+    .attr('id', 'arrowhead-join')
+    .attr('viewBox', '0 -5 10 10')
+    .attr('refX', 18).attr('refY', 0)
+    .attr('markerWidth', 6).attr('markerHeight', 6)
+    .attr('orient', 'auto')
+    .append('path')
+    .attr('d', 'M0,-4L10,0L0,4')
+    .attr('fill', '#3a3a3e');
+
+  const g = svg.append('g');
+
+  // Zoom
+  const zoom = d3.zoom()
+    .scaleExtent([0.3, 3])
+    .on('zoom', (event) => g.attr('transform', event.transform));
+  svg.call(zoom);
+
+  // Build link data with IDs
+  const linkData = topology.edges.map((e, i) => ({
+    ...e,
+    sourceId: e.source,
+    targetId: e.target,
+    id: `link-${i}`
+  }));
+
+  // Resolve references
+  const nodeMap = new Map(topology.nodes.map(n => [n.id, n]));
+  const links = linkData.map(l => ({
+    ...l,
+    source: nodeMap.get(l.sourceId) || { id: l.sourceId },
+    target: nodeMap.get(l.targetId) || { id: l.targetId }
+  }));
+
+  // Simulation
+  if (simulation) simulation.stop();
+  simulation = d3.forceSimulation(topology.nodes)
+    .force('link', d3.forceLink(links).id(d => d.id).distance(180))
+    .force('charge', d3.forceManyBody().strength(-600))
+    .force('center', d3.forceCenter(width / 2, height / 2))
+    .force('collision', d3.forceCollide().radius(40));
+
+  // Links
+  const link = g.append('g')
+    .selectAll('line')
+    .data(links)
+    .join('line')
+    .attr('class', 'topo-link')
+    .attr('stroke', d => d.type === 'event' ? '#f59e0b44' : d.type === 'command' ? '#3b82f644' : '#22d3ee44')
+    .attr('marker-end', d => d.type === 'join' ? 'url(#arrowhead-join)' : 'url(#arrowhead)');
+
+  // Link labels
+  const linkLabel = g.append('g')
+    .selectAll('text')
+    .data(links.filter(l => l.label && l.label !== '∧'))
+    .join('text')
+    .attr('class', 'topo-link-label')
+    .text(d => d.label);
+
+  // Nodes
+  const node = g.append('g')
+    .selectAll('.topo-node')
+    .data(topology.nodes)
+    .join('g')
+    .attr('class', 'topo-node')
+    .call(d3.drag()
+      .on('start', (event, d) => {
+        if (!event.active) simulation.alphaTarget(0.3).restart();
+        d.fx = d.x; d.fy = d.y;
+      })
+      .on('drag', (event, d) => {
+        d.fx = event.x; d.fy = event.y;
+      })
+      .on('end', (event, d) => {
+        if (!event.active) simulation.alphaTarget(0);
+        d.fx = null; d.fy = null;
+      })
+    );
+
+  node.each(function(d) {
+    const el = d3.select(this);
+    if (d.type === 'join') {
+      el.append('rect')
+        .attr('width', 24).attr('height', 24)
+        .attr('x', -12).attr('y', -12)
+        .attr('rx', 4)
+        .attr('fill', 'rgba(34, 211, 238, 0.1)')
+        .attr('stroke', '#22d3ee')
+        .attr('stroke-width', 2);
+      el.append('text')
+        .text('∧')
+        .attr('fill', '#22d3ee')
+        .attr('font-size', 14)
+        .attr('font-weight', 700);
+    } else {
+      const color = d.type === 'decider' ? '#f59e0b' : '#a78bfa';
+      const fillColor = d.type === 'decider' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(167, 139, 250, 0.1)';
+      el.append('circle')
+        .attr('r', 24)
+        .attr('fill', fillColor)
+        .attr('stroke', color)
+        .attr('stroke-width', 2);
+      el.append('text')
+        .text(d.id.length > 12 ? d.id.substring(0, 10) + '…' : d.id)
+        .attr('dy', 1);
+    }
+  });
+
+  // Tooltip on hover for full name
+  node.append('title').text(d => d.id);
+
+  simulation.on('tick', () => {
+    link
+      .attr('x1', d => d.source.x).attr('y1', d => d.source.y)
+      .attr('x2', d => d.target.x).attr('y2', d => d.target.y);
+
+    linkLabel
+      .attr('x', d => (d.source.x + d.target.x) / 2)
+      .attr('y', d => (d.source.y + d.target.y) / 2 - 6);
+
+    node.attr('transform', d => `translate(${d.x},${d.y})`);
+  });
+
+  document.getElementById('count-topology').textContent = topology.nodes.filter(n => n.type !== 'join').length;
+}
+
+// ════════════════════════════════════════════════════════════════
+// DECISION TABLE RENDERER
+// ════════════════════════════════════════════════════════════════
+function renderDecisions(decisions) {
+  const el = document.getElementById('decision-view');
+  if (decisions.length === 0) {
+    el.innerHTML = '<div class="empty-state"><div class="icon">📋</div><p>Add a lifecycle spec to see decision tables</p></div>';
+    return;
+  }
+
+  let html = '';
+  for (const d of decisions) {
+    const condEvents = d.events.filter(e => e.conditions.length > 0);
+    const uncondEvents = d.events.filter(e => e.conditions.length === 0);
+
+    html += `<div class="dt-command-name">${d.command} <span class="decider-badge">${d.decider}</span></div>`;
+    html += `<div class="dt-meta">${d.constraints.length} constraint${d.constraints.length !== 1 ? 's' : ''} · ${d.events.length} event${d.events.length !== 1 ? 's' : ''}${condEvents.length ? ` (${condEvents.length} conditional)` : ''}</div>`;
+
+    // Table header
+    html += '<table class="dt"><thead><tr>';
+    html += '<th>#</th>';
+    for (const c of d.constraints) html += `<th class="condition">${c}</th>`;
+    for (const e of condEvents) {
+      for (const c of e.conditions) html += `<th class="condition">${c}</th>`;
+    }
+    html += '<th class="event-col">→ Events</th>';
+    html += '</tr></thead><tbody>';
+
+    let row = 1;
+
+    // Success rows
+    if (condEvents.length === 0) {
+      html += `<tr class="success"><td>${row++}</td>`;
+      for (const c of d.constraints) html += `<td><span class="pass">✓</span></td>`;
+      html += `<td>${uncondEvents.map(e => `<span class="event-tag emitted">${e.name}</span>`).join(' ')}</td>`;
+      html += '</tr>';
+    } else {
+      // All conditions met
+      html += `<tr class="success"><td>${row++}</td>`;
+      for (const c of d.constraints) html += `<td><span class="pass">✓</span></td>`;
+      for (const e of condEvents) {
+        for (const c of e.conditions) html += `<td><span class="pass">✓</span></td>`;
+      }
+      const allEvts = d.events.map(e => `<span class="event-tag emitted">${e.name}</span>`).join(' ');
+      html += `<td>${allEvts}</td></tr>`;
+
+      // Only unconditional
+      html += `<tr class="success"><td>${row++}</td>`;
+      for (const c of d.constraints) html += `<td><span class="pass">✓</span></td>`;
+      for (const e of condEvents) {
+        for (const c of e.conditions) html += `<td><span class="fail">✗</span></td>`;
+      }
+      const uncondEvts = uncondEvents.map(e => `<span class="event-tag emitted">${e.name}</span>`).join(' ');
+      html += `<td>${uncondEvts || '<span class="skip">—</span>'}</td></tr>`;
+    }
+
+    // Failure rows
+    for (let i = 0; i < d.constraints.length; i++) {
+      html += `<tr class="failure"><td>${row++}</td>`;
+      for (let j = 0; j < d.constraints.length; j++) {
+        if (j < i) html += `<td><span class="pass">✓</span></td>`;
+        else if (j === i) html += `<td><span class="fail">✗</span></td>`;
+        else html += `<td><span class="skip">—</span></td>`;
+      }
+      for (const e of condEvents) {
+        for (const c of e.conditions) html += `<td><span class="skip">—</span></td>`;
+      }
+      html += `<td><span class="event-tag failed">DecisionFailed [${d.constraints[i]}]</span></td>`;
+      html += '</tr>';
+    }
+
+    html += '</tbody></table>';
+  }
+
+  el.innerHTML = html;
+  document.getElementById('count-decision').textContent = decisions.length;
+}
+
+// ════════════════════════════════════════════════════════════════
+// SCENARIOS RENDERER
+// ════════════════════════════════════════════════════════════════
+function renderScenarios(scenarios) {
+  const el = document.getElementById('scenarios-view');
+  if (scenarios.length === 0) {
+    el.innerHTML = '<div class="empty-state"><div class="icon">🧪</div><p>Add a lifecycle spec to see test scenarios</p></div>';
+    return;
+  }
+
+  // Group by command
+  const groups = {};
+  for (const s of scenarios) {
+    const key = `${s.decider}.${s.command}`;
+    if (!groups[key]) groups[key] = { decider: s.decider, command: s.command, items: [] };
+    groups[key].items.push(s);
+  }
+
+  let html = '';
+  for (const group of Object.values(groups)) {
+    html += `<div class="scenario-group-title">${group.command} <span class="decider-badge" style="font-size:10px;font-weight:500;color:var(--accent);background:var(--accent-dim);padding:2px 7px;border-radius:3px;">${group.decider}</span></div>`;
+
+    for (const s of group.items) {
+      html += `<div class="scenario-card">`;
+      html += `<span class="scenario-id ${s.type === 'success' ? 'pass' : 'fail'}">${s.id}</span>`;
+      html += `<span class="scenario-title">${s.title}</span>`;
+      html += `<div class="scenario-details">`;
+      html += `<span class="scenario-label">Setup</span><span class="scenario-value">${s.setup.join(', ')}</span>`;
+      html += `<span class="scenario-label">Events</span><span class="scenario-value">${s.events.join(', ')}</span>`;
+      html += `<span class="scenario-label">Assert</span><span class="scenario-value">${s.outcomes.join(', ')}</span>`;
+      html += `</div></div>`;
+    }
+  }
+
+  el.innerHTML = html;
+  document.getElementById('count-scenarios').textContent = scenarios.length;
+}
+
+// ════════════════════════════════════════════════════════════════
+// CHECKLIST RENDERER
+// ════════════════════════════════════════════════════════════════
+function renderChecklist(decisions) {
+  const el = document.getElementById('checklist-view');
+  if (decisions.length === 0) {
+    el.innerHTML = '<div class="empty-state"><div class="icon">✅</div><p>Add a lifecycle spec to see validation checklists</p></div>';
+    return;
+  }
+
+  let html = '';
+  let checkCount = 0;
+  for (const d of decisions) {
+    html += `<div class="checklist-command">`;
+    html += `<div class="checklist-heading">${d.command}</div>`;
+
+    if (d.constraints.length) {
+      html += `<div class="checklist-section">Preconditions</div>`;
+      for (const c of d.constraints) {
+        html += `<div class="checklist-item"><input type="checkbox" id="chk-${checkCount}"><label for="chk-${checkCount}">${kebabToSentence(c)}</label></div>`;
+        checkCount++;
+      }
+    }
+
+    html += `<div class="checklist-section">On Success</div>`;
+    for (const e of d.events) {
+      const note = e.conditions.length ? ` <span class="conditional">(when ${e.conditions.map(kebabToSentence).join(', ').toLowerCase()})</span>` : '';
+      html += `<div class="checklist-item"><input type="checkbox" id="chk-${checkCount}"><label for="chk-${checkCount}">${kebabToSentence(e.name)}${note}</label></div>`;
+      checkCount++;
+    }
+
+    const allOutcomes = [...d.outcomes._always, ...Object.values(d.outcomes.keyed).flat()];
+    if (allOutcomes.length) {
+      html += `<div class="checklist-section">After</div>`;
+      for (const o of d.outcomes._always) {
+        html += `<div class="checklist-item"><input type="checkbox" id="chk-${checkCount}"><label for="chk-${checkCount}">${kebabToSentence(o)}</label></div>`;
+        checkCount++;
+      }
+      for (const [key, items] of Object.entries(d.outcomes.keyed)) {
+        for (const o of items) {
+          html += `<div class="checklist-item"><input type="checkbox" id="chk-${checkCount}"><label for="chk-${checkCount}">${kebabToSentence(o)} <span class="conditional">(if ${kebabToSentence(key)})</span></label></div>`;
+          checkCount++;
+        }
+      }
+    }
+
+    html += `<div class="checklist-section">On Failure</div>`;
+    html += `<div class="checklist-item"><input type="checkbox" id="chk-${checkCount}"><label for="chk-${checkCount}">DecisionFailed is produced naming the failed preconditions</label></div>`;
+    checkCount++;
+    html += `<div class="checklist-item"><input type="checkbox" id="chk-${checkCount}"><label for="chk-${checkCount}">No state change occurs</label></div>`;
+    checkCount++;
+
+    html += `</div>`;
+  }
+
+  el.innerHTML = html;
+  document.getElementById('count-checklist').textContent = decisions.length;
+}
+
+// ════════════════════════════════════════════════════════════════
+// MAIN UPDATE LOOP
+// ════════════════════════════════════════════════════════════════
+function update() {
+  const text = editor.value;
+  const errorBar = document.getElementById('error-bar');
+  const statusDot = document.getElementById('status-dot');
+  const statusText = document.getElementById('status-text');
+
+  try {
+    const specs = parseSpecs(text);
+    errorBar.classList.remove('visible');
+    statusDot.classList.remove('error');
+    statusText.textContent = `${specs.lifecycles.length} lifecycle · ${specs.processes.length} process`;
+
+    const topology = extractTopology(specs);
+    const decisions = extractDecisions(specs);
+    const scenarios = generateScenarios(decisions);
+
+    renderTopology(topology);
+    renderDecisions(decisions);
+    renderScenarios(scenarios);
+    renderChecklist(decisions);
+
+    // Update filename hint
+    const fn = document.getElementById('filename');
+    if (specs.lifecycles.length && !specs.processes.length) fn.textContent = `${(specs.lifecycles[0].decider || 'untitled').toLowerCase()}.lifecycle.ubispec.yaml`;
+    else if (specs.processes.length && !specs.lifecycles.length) fn.textContent = `${(specs.processes[0].process || 'untitled').replace(/([A-Z])/g, '-$1').toLowerCase().slice(1)}.process.ubispec.yaml`;
+    else if (specs.lifecycles.length && specs.processes.length) fn.textContent = 'multi-document.ubispec.yaml';
+    else fn.textContent = 'untitled.ubispec.yaml';
+
+  } catch (e) {
+    errorBar.textContent = e.message;
+    errorBar.classList.add('visible');
+    statusDot.classList.add('error');
+    statusText.textContent = 'Error';
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+// UI WIRING
+// ════════════════════════════════════════════════════════════════
+const editor = document.getElementById('editor');
+
+// Debounced update
+let updateTimer;
+editor.addEventListener('input', () => {
+  clearTimeout(updateTimer);
+  updateTimer = setTimeout(update, 250);
+});
+
+// Tab switching
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(`${tab.dataset.view}-view`).classList.add('active');
+    // Re-render topology on tab switch (SVG sizing)
+    if (tab.dataset.view === 'topology') {
+      setTimeout(() => {
+        try {
+          const specs = parseSpecs(editor.value);
+          renderTopology(extractTopology(specs));
+        } catch(e) {}
+      }, 50);
+    }
+  });
+});
+
+// Template loading
+document.getElementById('template-select').addEventListener('change', function() {
+  if (this.value && TEMPLATES[this.value]) {
+    editor.value = TEMPLATES[this.value];
+    this.value = '';
+    update();
+  }
+});
+
+// Resize handle
+const resizeHandle = document.getElementById('resize-handle');
+const editorPanel = document.getElementById('editor-panel');
+let isResizing = false;
+
+resizeHandle.addEventListener('mousedown', (e) => {
+  isResizing = true;
+  resizeHandle.classList.add('active');
+  document.addEventListener('mousemove', handleResize);
+  document.addEventListener('mouseup', () => {
+    isResizing = false;
+    resizeHandle.classList.remove('active');
+    document.removeEventListener('mousemove', handleResize);
+  });
+});
+
+function handleResize(e) {
+  if (!isResizing) return;
+  const newWidth = e.clientX;
+  if (newWidth > 250 && newWidth < window.innerWidth - 300) {
+    editorPanel.style.width = newWidth + 'px';
+  }
+}
+
+// Tab key support in textarea
+editor.addEventListener('keydown', (e) => {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const start = editor.selectionStart;
+    const end = editor.selectionEnd;
+    editor.value = editor.value.substring(0, start) + '  ' + editor.value.substring(end);
+    editor.selectionStart = editor.selectionEnd = start + 2;
+    clearTimeout(updateTimer);
+    updateTimer = setTimeout(update, 250);
+  }
+});
+
+// Handle window resize for topology
+window.addEventListener('resize', () => {
+  try {
+    const specs = parseSpecs(editor.value);
+    renderTopology(extractTopology(specs));
+  } catch(e) {}
+});
+
+// Init with a template
+editor.value = TEMPLATES['process-fulfillment'];
+update();
+
+</script>
+</body>
+</html>

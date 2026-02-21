@@ -1,0 +1,149 @@
+# yaml-language-server: $schema=../../schema/lifecycle.v1.schema.json
+
+bspec: lifecycle/v1
+
+decider: Laboratory
+identity: laboratoryId
+model: "./model.ts"
+
+common:
+  lab-is-planned: "dm.state.status.kind === 'Planned'"
+  lab-is-operational: "dm.state.status.kind === 'Operational'"
+  lab-exists: "dm.state.laboratoryId != null"
+
+lifecycle:
+
+  - When: RegisterLaboratory
+    And:
+      - valid-facility-ref: "dm.ctx.facilityExists"  # shell: FacilityRegistry.lookup(dm.cmd.facilityRegistryId)
+      - unique-facility-binding: "!dm.ctx.facilityAlreadyBound"  # shell: LaboratoryRepo.findByFacility(dm.cmd.facilityRegistryId)
+      - valid-name: "dm.cmd.name.length > 0"
+    Then: LaboratoryRegistered
+    Outcome:
+      - state-is-planned: "om.state.status.kind === 'Planned'"
+      - name-set: "om.state.name === dm.cmd.name"
+      - facility-bound: "om.state.facilityRegistryId === dm.cmd.facilityRegistryId"
+      - no-assignments: "om.state.assignments.length === 0"
+
+  - When: ActivateLaboratory
+    And:
+      - lab-is-planned
+    Then: LaboratoryActivated
+    Outcome:
+      - state-is-operational: "om.state.status.kind === 'Operational'"
+      - assignments-unchanged: "om.state.assignments.length === dm.state.assignments.length"
+
+  - When: SuspendLaboratory
+    And:
+      - lab-is-operational
+      - has-reason: "dm.cmd.reason.length > 0"
+    Then: LaboratorySuspended
+    Outcome:
+      - state-is-suspended: "om.state.status.kind === 'Suspended'"
+      - reason-recorded: "om.state.status.reason === dm.cmd.reason"
+      - assignments-unchanged: "om.state.assignments.length === dm.state.assignments.length"
+
+  - When: ReinstateLaboratory
+    And:
+      - is-suspended: "dm.state.status.kind === 'Suspended'"
+    Then: LaboratoryReinstated
+    Outcome:
+      - state-is-operational: "om.state.status.kind === 'Operational'"
+
+  - When: CloseLaboratory
+    And:
+      - not-already-closed: "dm.state.status.kind !== 'Closed'"
+    Then: LaboratoryClosed
+    Outcome:
+      - state-is-closed: "om.state.status.kind === 'Closed'"
+      - closed-date-set: "om.state.status.closedDate != null"
+
+  - When: AssignProfile
+    And:
+      - lab-is-active: >
+          dm.state.status.kind === 'Planned' ||
+          dm.state.status.kind === 'Operational'
+      - no-duplicate-area: >
+          !dm.state.assignments.some(a =>
+            a.area.kind === dm.cmd.area.kind)
+      - profile-exists: "dm.ctx.profileExists"  # shell: RegistryRepo.profileExists(dm.cmd.profileId)
+    Then:
+      - ProfileSelfAssessed:
+          - is-self-assessment: "dm.cmd.source === 'self-assessment'"
+      - ProfileDirectlyAssigned:
+          - is-authority-assignment: "dm.cmd.source === 'authority'"
+    Outcome:
+      _always:
+        - assignment-added: >
+            om.state.assignments.some(a =>
+              a.area.kind === dm.cmd.area.kind &&
+              a.profileId === dm.cmd.profileId)
+        - assignments-grew: "om.state.assignments.length === dm.state.assignments.length + 1"
+        - other-assignments-preserved: >
+            dm.state.assignments.every(a =>
+              om.state.assignments.some(oa =>
+                oa.area.kind === a.area.kind))
+      ProfileSelfAssessed:
+        - assignment-is-self-assessed: >
+            om.state.assignments.find(a =>
+              a.area.kind === dm.cmd.area.kind).kind === 'SelfAssessed'
+      ProfileDirectlyAssigned:
+        - assignment-is-confirmed: >
+            om.state.assignments.find(a =>
+              a.area.kind === dm.cmd.area.kind).kind === 'Confirmed'
+
+  - When: UpdateAssignment
+    And:
+      - lab-exists
+      - assignment-exists: >
+          dm.state.assignments.some(a =>
+            a.area.kind === dm.cmd.area.kind)
+    Then:
+      - AssignmentMovedToReview:
+          - target-is-review: "dm.cmd.targetKind === 'UnderReview'"
+      - AssignmentConfirmed:
+          - target-is-confirmed: "dm.cmd.targetKind === 'Confirmed'"
+      - AssignmentMovedToDevelopment:
+          - target-is-development: "dm.cmd.targetKind === 'Development'"
+      - AssignmentReassessmentTriggered:
+          - target-is-reassessment: "dm.cmd.targetKind === 'SelfAssessed'"
+    Outcome:
+      _always:
+        - assignment-count-unchanged: "om.state.assignments.length === dm.state.assignments.length"
+      AssignmentMovedToReview:
+        - assignment-is-under-review: >
+            om.state.assignments.find(a =>
+              a.area.kind === dm.cmd.area.kind).kind === 'UnderReview'
+      AssignmentConfirmed:
+        - assignment-is-confirmed: >
+            om.state.assignments.find(a =>
+              a.area.kind === dm.cmd.area.kind).kind === 'Confirmed'
+        - confirmed-by-set: >
+            om.state.assignments.find(a =>
+              a.area.kind === dm.cmd.area.kind).confirmedBy === dm.cmd.confirmedBy
+      AssignmentMovedToDevelopment:
+        - assignment-is-development: >
+            om.state.assignments.find(a =>
+              a.area.kind === dm.cmd.area.kind).kind === 'Development'
+      AssignmentReassessmentTriggered:
+        - assignment-is-self-assessed: >
+            om.state.assignments.find(a =>
+              a.area.kind === dm.cmd.area.kind).kind === 'SelfAssessed'
+
+  - When: WithdrawAssignment
+    And:
+      - lab-exists
+      - assignment-exists: >
+          dm.state.assignments.some(a =>
+            a.area.kind === dm.cmd.area.kind)
+    Then: AssignmentWithdrawn
+    Outcome:
+      - assignment-gone: >
+          !om.state.assignments.some(a =>
+            a.area.kind === dm.cmd.area.kind)
+      - assignments-shrank: "om.state.assignments.length === dm.state.assignments.length - 1"
+      - other-assignments-preserved: >
+          dm.state.assignments
+            .filter(a => a.area.kind !== dm.cmd.area.kind)
+            .every(a => om.state.assignments.some(oa =>
+              oa.area.kind === a.area.kind))

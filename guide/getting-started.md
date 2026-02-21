@@ -286,3 +286,60 @@ This is a different pass by different people. The structure doesn't change. The 
 **Let the Process UbiSpec reveal architecture.** Don't design the coordination up front. Write the lifecycles first. Then ask "what needs to react to this event?" The topology emerges.
 
 **Revisit after implementation.** Once code exists, the spec becomes a living contract. If the code can't satisfy an outcome assertion, either the code has a bug or the spec has a wrong assumption. Either way, the conversation is productive.
+
+
+
+## What UbiSpec Gives You
+
+From a single source of truth, at each level of predicate detail:
+
+| Output | Names only | + Scopes | + Expressions |
+|--------|:---:|:---:|:---:|
+| Structured behaviour catalog | ✓ | ✓ | ✓ |
+| User stories with acceptance criteria | ✓ | ✓ | ✓ |
+| Test scenarios and coverage matrices | ✓ | ✓ | ✓ |
+| Workflow documentation | ✓ | ✓ | ✓ |
+| Client validation checklists | ✓ | ✓ | ✓ |
+| Shell / integration point manifests | | ✓ | ✓ |
+| Data flow architecture | | ✓ | ✓ |
+| Executable test suites | | | ✓ |
+| Implementation skeletons | | | ✓ |
+
+The first column requires zero code. A UbiSpec with names only is already a complete behavioural specification — structured enough to generate documentation and stories, precise enough to validate with stakeholders. Adding scope annotations (`dm.state`, `dm.ctx`) reveals the architecture. Adding expressions makes it executable.
+
+## Where UbiSpec Fits
+
+UbiSpec operationalises the output of collaborative modelling. It's not a replacement for domain discovery — it's what you write *after* discovery, to capture what you learned in a format that survives.
+
+### Starting From Collaborative Modelling
+
+If you've done EventStorming, Context Mapping, Example Mapping, or similar workshops, you already have the raw material: bounded contexts, aggregates, commands, events, policies, read models. UbiSpec gives that material a structured home:
+
+```
+EventStorming / Context Mapping / Domain Conversations
+    ↓
+Bounded contexts identified, aggregates sketched
+    ↓
+UbiSpec (one Lifecycle per aggregate, one Process per coordination flow)
+    ↓
+    ├→ Validation with domain experts (names pass)
+    ├→ User stories, test scenarios, documentation
+    ├→ Enrichment with predicates (developer pass)
+    └→ Implementation, executable tests
+```
+
+The workshop gives you the big picture — contexts, boundaries, flows. UbiSpec zooms into each aggregate and captures the precise rules: which commands are accepted, under what conditions, what changes, what doesn't.
+
+### Starting From Scratch
+
+If there's no prior modelling, UbiSpec can be used as a discovery tool. Writing specs forces the questions that matter: *What can happen to this thing? When can it happen? What prevents it? What changes as a result? What must stay the same?*
+
+Start with one aggregate. Write the lifecycle. Present it. The gaps and contradictions surface quickly — "wait, can a suspended lab be closed directly?" — because the structure demands answers the way prose doesn't.
+
+As you write more aggregates, cross-cutting coordination surfaces naturally: "when this event happens on aggregate A, does anything need to happen on aggregate B?" That's a Process UbiSpec. The topology of your system emerges from the specs.
+
+This works especially well when prototyping: sketch a few lifecycles, see how they interact, refactor boundaries. UbiSpec are cheap to rewrite because they're small and self-contained.
+
+### Either Way
+
+Whether you start from a week-long EventStorming or a single conversation, UbiSpec captures the output in the same format. The quality of the specs depends on the quality of the discovery — but the format ensures that whatever you discover doesn't evaporate.

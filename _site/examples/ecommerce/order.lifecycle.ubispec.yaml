@@ -1,0 +1,136 @@
+# yaml-language-server: $schema=../../schema/lifecycle.v1.schema.json
+
+ubispec: lifecycle/v1
+
+decider: Order
+identity: orderId
+model: "./model.ts"
+
+common:
+  order-is-draft: "dm.state.status.kind === 'Draft'"
+  order-is-placed: "dm.state.status.kind === 'Placed'"
+  order-is-confirmed: "dm.state.status.kind === 'Confirmed'"
+
+lifecycle:
+
+  - When: CreateOrder
+    And:
+      - valid-customer: "dm.cmd.customerId.length > 0"
+    Then: OrderCreated
+    Outcome:
+      - state-is-draft: "om.state.status.kind === 'Draft'"
+      - customer-set: "om.state.customerId === dm.cmd.customerId"
+      - empty-lines: "om.state.lines.length === 0"
+
+  - When: AddLineItem
+    And:
+      - order-is-draft
+      - product-exists: "dm.ctx.productExists"  # shell: ProductCatalog.exists(dm.cmd.productId)
+      - positive-quantity: "dm.cmd.quantity > 0"
+    Then: LineItemAdded
+    Outcome:
+      - line-present: >
+          om.state.lines.some(l =>
+            l.productId === dm.cmd.productId &&
+            l.quantity === dm.cmd.quantity)
+      - lines-grew: "om.state.lines.length === dm.state.lines.length + 1"
+      - status-unchanged: "om.state.status.kind === dm.state.status.kind"
+
+  - When: RemoveLineItem
+    And:
+      - order-is-draft
+      - line-exists: "dm.state.lines.some(l => l.lineId === dm.cmd.lineId)"
+    Then: LineItemRemoved
+    Outcome:
+      - line-gone: "!om.state.lines.some(l => l.lineId === dm.cmd.lineId)"
+      - lines-shrank: "om.state.lines.length === dm.state.lines.length - 1"
+      - other-lines-preserved: >
+          dm.state.lines
+            .filter(l => l.lineId !== dm.cmd.lineId)
+            .every(l => om.state.lines.some(ol => ol.lineId === l.lineId))
+
+  - When: PlaceOrder
+    And:
+      - order-is-draft
+      - has-lines: "dm.state.lines.length > 0"
+      - all-products-in-stock: "dm.ctx.allInStock"  # shell: InventoryService.checkAll(dm.state.lines)
+    Then:
+      - OrderPlaced
+      - HighValueOrderFlagged:
+          - high-value: "dm.ctx.orderTotal > 10000"  # shell: PricingService.calculateTotal(dm.state.lines)
+    Outcome:
+      _always:
+        - state-is-placed: "om.state.status.kind === 'Placed'"
+        - placed-at-recorded: "om.state.status.placedAt != null"
+        - lines-unchanged: "om.state.lines.length === dm.state.lines.length"
+      HighValueOrderFlagged:
+        - flag-recorded: "om.state.requiresManualReview === true"
+
+  - When: ConfirmOrder
+    And:
+      - order-is-placed
+      - payment-verified: "dm.ctx.paymentVerified"  # shell: PaymentGateway.verify(dm.state.paymentRef)
+    Then:
+      - OrderConfirmed
+      - InventoryReserved
+    Outcome:
+      - state-is-confirmed: "om.state.status.kind === 'Confirmed'"
+      - confirmed-at-recorded: "om.state.status.confirmedAt != null"
+      - two-events: "om.evts.length === 2"
+      - inventory-event-carries-lines: >
+          om.evts.find(e => e.kind === 'InventoryReserved')
+            .lines.length === dm.state.lines.length
+
+  - When: ShipOrder
+    And:
+      - order-is-confirmed
+      - has-tracking-number: "dm.cmd.trackingNumber.length > 0"
+      - has-carrier: "dm.cmd.carrier.length > 0"
+    Then: OrderShipped
+    Outcome:
+      - state-is-shipped: "om.state.status.kind === 'Shipped'"
+      - tracking-set: "om.state.status.trackingNumber === dm.cmd.trackingNumber"
+      - carrier-set: "om.state.status.carrier === dm.cmd.carrier"
+
+  - When: DeliverOrder
+    And:
+      - order-is-shipped: "dm.state.status.kind === 'Shipped'"
+    Then: OrderDelivered
+    Outcome:
+      - state-is-delivered: "om.state.status.kind === 'Delivered'"
+      - delivered-at-recorded: "om.state.status.deliveredAt != null"
+
+  - When: CancelOrder
+    And:
+      - is-cancellable: >
+          dm.state.status.kind === 'Draft' ||
+          dm.state.status.kind === 'Placed'
+      - has-reason: "dm.cmd.reason.length > 0"
+    Then:
+      - OrderCancelled
+      - InventoryReleased:
+          - was-confirmed-with-reservation: "dm.state.status.kind === 'Placed' && dm.state.inventoryReserved"
+    Outcome:
+      _always:
+        - state-is-cancelled: "om.state.status.kind === 'Cancelled'"
+        - reason-recorded: "om.state.status.reason === dm.cmd.reason"
+      InventoryReleased:
+        - inventory-release-carries-lines: >
+            om.evts.find(e => e.kind === 'InventoryReleased')
+              .lines.length === dm.state.lines.length
+
+  - When: RequestRefund
+    And:
+      - order-is-delivered: "dm.state.status.kind === 'Delivered'"
+      - within-refund-window: "dm.ctx.withinRefundWindow"  # shell: PolicyService.checkRefundWindow(dm.state.status.deliveredAt)
+      - has-reason: "dm.cmd.reason.length > 0"
+    Then:
+      - RefundRequested
+      - FullRefundApproved:
+          - auto-approve-eligible: "dm.ctx.autoApproveEligible"  # shell: PolicyService.checkAutoApprove(dm.state)
+    Outcome:
+      _always:
+        - state-is-refund-requested: "om.state.status.kind === 'RefundRequested'"
+        - refund-reason-recorded: "om.state.status.refundReason === dm.cmd.reason"
+      FullRefundApproved:
+        - auto-approved-flag: "om.state.refundAutoApproved === true"
