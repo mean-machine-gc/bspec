@@ -30,6 +30,15 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup Pages
         uses: actions/configure-pages@v5
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Generate schema docs
+        run: |
+          pip install json-schema-for-humans
+          generate-schema-doc --config-file schema/jsfh-config.yaml schema/lifecycle.v1.schema.json schema/lifecycle-docs.html
+          generate-schema-doc --config-file schema/jsfh-config.yaml schema/process.v1.schema.json schema/process-docs.html
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@v1
         with:
