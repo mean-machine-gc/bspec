@@ -1,5 +1,328 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "ubispec": {
+      "type": "string",
+      "const": "process/v1.0",
+      "description": "Format identifier and version."
+    },
+    "process": {
+      "type": "string",
+      "pattern": "^[A-Z][a-zA-Z0-9]*$",
+      "description": "Process manager name. PascalCase."
+    },
+    "reacts_to": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Z][a-zA-Z0-9]*$",
+        "description": "Decider name. PascalCase."
+      },
+      "description": "Deciders whose events this process manager subscribes to."
+    },
+    "emits_to": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Z][a-zA-Z0-9]*$",
+        "description": "Decider name. PascalCase."
+      },
+      "description": "Deciders to which this process manager dispatches commands."
+    },
+    "model": {
+      "type": "string",
+      "description": "Relative path to the TypeScript model file."
+    },
+    "state": {
+      "description": "Process manager state fields. Values are TypeScript type expressions. Only for stateful sagas.",
+      "type": "object",
+      "propertyNames": {
+        "type": "string"
+      },
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "common": {
+      "description": "Reusable predicates referenced by bare name.",
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+        "description": "kebab-case identifier that reads as natural language."
+      },
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1,
+        "description": "Scope annotation, prose description, or TypeScript boolean expression over dm.*/om.*/rm.* namespaces."
+      }
+    },
+    "reactions": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "When": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Z][a-zA-Z0-9]*$",
+                "description": "Scalar trigger: single event name."
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "any": {
+                    "minItems": 2,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^[A-Z][a-zA-Z0-9]*$",
+                      "description": "Event name. PascalCase."
+                    },
+                    "description": "OR trigger: any one of these events fires the reaction."
+                  }
+                },
+                "required": [
+                  "any"
+                ],
+                "additionalProperties": false,
+                "description": "Any (OR) trigger: reaction fires when any one of the listed events occurs."
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "all": {
+                    "minItems": 2,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^[A-Z][a-zA-Z0-9]* from [A-Z][a-zA-Z0-9]*$",
+                      "description": "Event with source: `EventName from DeciderName`."
+                    },
+                    "description": "AND trigger with per-event sources: `EventName from DeciderName`."
+                  }
+                },
+                "required": [
+                  "all"
+                ],
+                "additionalProperties": false,
+                "description": "All (AND) trigger: reaction fires when all listed cross-decider events have occurred."
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "all": {
+                    "minItems": 2,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^[A-Z][a-zA-Z0-9]*$",
+                      "description": "Event name. PascalCase."
+                    },
+                    "description": "AND trigger with shared source (From field required)."
+                  }
+                },
+                "required": [
+                  "all"
+                ],
+                "additionalProperties": false,
+                "description": "All (AND) trigger: reaction fires when all listed events from a shared source have occurred."
+              }
+            ],
+            "description": "Trigger: which event(s) fire this reaction."
+          },
+          "From": {
+            "description": "Source decider. Required for scalar and any triggers. Optional for all triggers when all events share a source.",
+            "type": "string",
+            "pattern": "^[A-Z][a-zA-Z0-9]*$"
+          },
+          "correlate": {
+            "description": "Field name that links events to the same instance. Required for all triggers.",
+            "type": "string"
+          },
+          "trigger": {
+            "default": "automated",
+            "description": "`automated` (default) or `policy`. Policy reactions require `actor`.",
+            "type": "string",
+            "enum": [
+              "automated",
+              "policy"
+            ]
+          },
+          "actor": {
+            "description": "Role or persona expected to fulfill this reaction. Required when trigger is `policy`.",
+            "type": "string"
+          },
+          "And": {
+            "description": "Guard constraints. All must hold for the reaction to proceed.",
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+                  "description": "kebab-case identifier that reads as natural language."
+                },
+                {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+                    "description": "kebab-case identifier that reads as natural language."
+                  },
+                  "additionalProperties": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Scope annotation, prose description, or TypeScript boolean expression over dm.*/om.*/rm.* namespaces."
+                  },
+                  "description": "Inline predicate: name → expression."
+                }
+              ],
+              "description": "Predicate entry: bare name (common reference) or inline definition (name → expression)."
+            }
+          },
+          "Then": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Z][a-zA-Z0-9]* -> [A-Z][a-zA-Z0-9]*$",
+                "description": "Scalar form: single unconditional command."
+              },
+              {
+                "minItems": 1,
+                "type": "array",
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[A-Z][a-zA-Z0-9]* -> [A-Z][a-zA-Z0-9]*$",
+                      "description": "Targeted command: `CommandName -> DeciderName`."
+                    },
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string",
+                        "pattern": "^[A-Z][a-zA-Z0-9]* -> [A-Z][a-zA-Z0-9]*$",
+                        "description": "Targeted command: `CommandName -> DeciderName`."
+                      },
+                      "additionalProperties": {
+                        "minItems": 1,
+                        "type": "array",
+                        "items": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+                              "description": "kebab-case identifier that reads as natural language."
+                            },
+                            {
+                              "type": "object",
+                              "propertyNames": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+                                "description": "kebab-case identifier that reads as natural language."
+                              },
+                              "additionalProperties": {
+                                "type": "string",
+                                "minLength": 1,
+                                "description": "Scope annotation, prose description, or TypeScript boolean expression over dm.*/om.*/rm.* namespaces."
+                              },
+                              "description": "Inline predicate: name → expression."
+                            }
+                          ],
+                          "description": "Predicate entry: bare name (common reference) or inline definition (name → expression)."
+                        },
+                        "description": "List of predicates. All must hold."
+                      },
+                      "description": "Conditional command: `CommandName -> DeciderName` → list of conditions."
+                    }
+                  ],
+                  "description": "Command spec: unconditional (targeted string) or conditional (with predicate list)."
+                },
+                "description": "List form: one or more commands. Additive — all whose conditions pass are dispatched."
+              }
+            ],
+            "description": "Commands to dispatch."
+          },
+          "Outcome": {
+            "anyOf": [
+              {
+                "minItems": 1,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+                    "description": "kebab-case identifier that reads as natural language."
+                  },
+                  "additionalProperties": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Scope annotation, prose description, or TypeScript boolean expression over dm.*/om.*/rm.* namespaces."
+                  },
+                  "description": "Assertion: name → expression evaluated in outcome context."
+                },
+                "description": "Flat form: all assertions apply to every success path."
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "minItems": 1,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+                      "description": "kebab-case identifier that reads as natural language."
+                    },
+                    "additionalProperties": {
+                      "type": "string",
+                      "minLength": 1,
+                      "description": "Scope annotation, prose description, or TypeScript boolean expression over dm.*/om.*/rm.* namespaces."
+                    },
+                    "description": "Assertion: name → expression evaluated in outcome context."
+                  },
+                  "description": "List of assertions. All must hold after state change."
+                },
+                "description": "Keyed form: `_always` for universal assertions, event/command names for conditional assertions."
+              }
+            ],
+            "description": "Assertions about dispatched commands."
+          }
+        },
+        "required": [
+          "When",
+          "trigger",
+          "Then",
+          "Outcome"
+        ],
+        "additionalProperties": false,
+        "description": "Reaction: one event-triggered coordination step."
+      },
+      "description": "List of reactions."
+    }
+  },
+  "required": [
+    "ubispec",
+    "process",
+    "reacts_to",
+    "emits_to",
+    "model",
+    "reactions"
+  ],
+  "additionalProperties": false,
+  "description": "Process UbiSpec: cross-aggregate coordination via event-driven reactions.",
   "$id": "https://mean-machine-gc.github.io/ubispec/schema/process/next.schema.json",
   "title": "process UbiSpec next"
 }
