@@ -3,7 +3,7 @@
     "lifecycle": {
       "versions": {
         "v1.0": {
-          "schema": "schema/lifecycle/v1.0.schema.json",
+          "schema": "./schema/lifecycle/v1-0.schema.json",
           "zod": "./schema/lifecycle.ts",
           "export": "LifecycleSpec",
           "docs": "spec/lifecycle/v1.0-tables.md",

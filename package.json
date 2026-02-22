@@ -8,7 +8,7 @@
   },
   "scripts": {
     "gen:schema": "tsx ./scripts/gen-schemas.ts",
-    "gen:docs": "tsx schema/generate-docs.ts",
+    "gen:docs": "tsx ./scripts/gen-schema-docs.ts",
     "gen:all": "npm run gen:schema -- lifecycle v1.0 && npm run gen:schema -- process v1.0 && npm run gen:docs -- lifecycle v1.0 > spec/lifecycle/v1.0-tables.md && npm run gen:docs -- process v1.0 > spec/process/v1.0-tables.md"
   },
   "author": "Giovanni Chiodi",

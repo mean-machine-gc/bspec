@@ -126,7 +126,7 @@ export const Decision = z
  */
 export const LifecycleSpec = z
   .object({
-    ubispec: z.literal('lifecycle/v1.0')
+    ubispec: z.literal('lifecycle/v1.1')
       .describe('Format identifier and version.'),
     decider: PascalName
       .describe('Aggregate name. PascalCase.'),

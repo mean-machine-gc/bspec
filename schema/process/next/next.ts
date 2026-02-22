@@ -255,7 +255,7 @@ export const Reaction = z
  */
 export const ProcessSpec = z
   .object({
-    ubispec: z.literal('process/v1.0')
+    ubispec: z.literal('process/v1.1')
       .describe('Format identifier and version.'),
     process: PascalName
       .describe('Process manager name. PascalCase.'),

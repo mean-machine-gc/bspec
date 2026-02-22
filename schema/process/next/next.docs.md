@@ -1,0 +1,257 @@
+# Process UbiSpec next — Schema Reference
+
+## ProcessSpec Object
+
+Process UbiSpec: cross-aggregate coordination via event-driven reactions.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `ubispec` | `"process/v1.1"` | **Required.** Format identifier and version. |
+| `process` | [PascalName](#pascalname) | **Required.** Process manager name. PascalCase. |
+| `reacts_to` | List of [DeciderName](#decidername) | **Required.** Deciders whose events this process manager subscribes to. |
+| `emits_to` | List of [DeciderName](#decidername) | **Required.** Deciders to which this process manager dispatches commands. |
+| `model` | `string` | **Required.** Relative path to the TypeScript model file. |
+| `state` | Record<`string`, `string`> (optional) | _Optional._ Process manager state fields. Values are TypeScript type expressions. Only for stateful sagas. |
+| `common` | [PredicateMap](#predicatemap) (optional) | _Optional._ Reusable predicates referenced by bare name. |
+| `reactions` | List of [Reaction](#reaction) | **Required.** List of reactions. |
+
+## Reaction Object
+
+Reaction: one event-triggered coordination step.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `When` | [WhenSpec](#whenspec) | **Required.** Trigger: which event(s) fire this reaction. |
+| `From` | [DeciderName](#decidername) (optional) | _Optional._ Source decider. Required for scalar and any triggers. Optional for all triggers when all events share a source. |
+| `correlate` | `string` (optional) | _Optional._ Field name that links events to the same instance. Required for all triggers. |
+| `trigger` | [TriggerType](#triggertype) (optional) | _Optional._ `automated` (default) or `policy`. Policy reactions require `actor`. |
+| `actor` | `string` (optional) | _Optional._ Role or persona expected to fulfill this reaction. Required when trigger is `policy`. |
+| `And` | [ConstraintList](#constraintlist) (optional) | _Optional._ Guard constraints. All must hold for the reaction to proceed. |
+| `Then` | [ThenSpec](#thenspec) | **Required.** Commands to dispatch. |
+| `Outcome` | [OutcomeSpec](#outcomespec) | **Required.** Assertions about dispatched commands. |
+
+## ThenSpec
+
+Commands to dispatch. Scalar (single command) or list (multiple, additive).
+
+| Option | Type | Description |
+|--------|------|-------------|
+| 1 | [TargetedCommand](#targetedcommand) | Scalar form: single unconditional command. |
+| 2 | [ConstraintList](#constraintlist) | List form: one or more commands. Additive — all whose conditions pass are dispatched. |
+
+## WhenSpec
+
+Trigger: scalar (single event), any (OR), or all (AND).
+
+| Option | Type | Description |
+|--------|------|-------------|
+| 1 | [WhenScalar](#whenscalar) | Scalar trigger: single event name. |
+| 2 | [WhenAny](#whenany) | Any (OR) trigger: reaction fires when any one of the listed events occurs. |
+| 3 | [WhenAllCross](#whenallcross) | All (AND) trigger: reaction fires when all listed cross-decider events have occurred. |
+| 4 | [WhenAllShared](#whenallshared) | All (AND) trigger: reaction fires when all listed events from a shared source have occurred. |
+
+## CommandSpec
+
+Command spec: unconditional (targeted string) or conditional (with predicate list).
+
+| Option | Type | Description |
+|--------|------|-------------|
+| 1 | [TargetedCommand](#targetedcommand) | Targeted command: `CommandName -> DeciderName`. |
+| 2 | [ConditionalCommand](#conditionalcommand) | Conditional command: `CommandName -> DeciderName` → list of conditions. |
+
+## ConditionalCommand
+
+Conditional command: `CommandName -> DeciderName` → list of conditions.
+
+| Constraint | Value |
+|------------|-------|
+| **Type** | `Record<TargetedCommand, ConstraintList>` |
+| **Key Type** | [TargetedCommand](#targetedcommand) |
+| **Value Type** | [ConstraintList](#constraintlist) |
+| **Key Format** | `CommandName -> DeciderName` |
+| **Description** | Maps targeted commands to their conditions |
+
+## DeciderName
+
+Decider name. PascalCase.
+
+| Constraint | Value |
+|------------|-------|
+| **Type** | `string` |
+| **Pattern** | PascalCase |
+
+## EventName
+
+Event name. PascalCase.
+
+| Constraint | Value |
+|------------|-------|
+| **Type** | `string` |
+| **Pattern** | PascalCase |
+| **Description** | Must match a type in the model |
+
+## SourcedEvent
+
+Event with source: `EventName from DeciderName`.
+
+| Constraint | Value |
+|------------|-------|
+| **Type** | `string` |
+| **Format** | `EventName from DeciderName` |
+| **Description** | Event with source specification |
+
+## TargetedCommand
+
+Targeted command: `CommandName -> DeciderName`.
+
+| Constraint | Value |
+|------------|-------|
+| **Type** | `string` |
+| **Format** | `CommandName -> DeciderName` |
+| **Description** | Command with target specification |
+
+## TriggerType
+
+`automated`: runtime executes commands. `policy`: causal expectation, not auto-executed. Actor required for policy.
+
+| Value | Description |
+|-------|-------------|
+| `"automated"` | Allowed value |
+| `"policy"` | Allowed value |
+
+## WhenAllCross Object
+
+All (AND) trigger: reaction fires when all listed cross-decider events have occurred.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `all` | List of [SourcedEvent](#sourcedevent) | **Required.** AND trigger with per-event sources: `EventName from DeciderName`. |
+
+## WhenAllShared Object
+
+All (AND) trigger: reaction fires when all listed events from a shared source have occurred.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `all` | List of [EventName](#eventname) | **Required.** AND trigger with shared source (From field required). |
+
+## WhenAny Object
+
+Any (OR) trigger: reaction fires when any one of the listed events occurs.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `any` | List of [EventName](#eventname) | **Required.** OR trigger: any one of these events fires the reaction. |
+
+## WhenScalar
+
+Scalar trigger: single event name.
+
+| Constraint | Value |
+|------------|-------|
+| **Type** | `string` |
+| **Description** | Single event name trigger |
+
+## ConstraintList
+
+List of predicates. All must hold.
+
+| Constraint | Value |
+|------------|-------|
+| **Type** | `Array<PredicateEntry>` |
+| **Item Type** | [PredicateEntry](#predicateentry) |
+| **Description** | All predicates must hold |
+| **Min Length** | 1 |
+
+## OutcomeSpec
+
+Outcome assertions. Flat list or keyed by event/command name.
+
+| Option | Type | Description |
+|--------|------|-------------|
+| 1 | [AssertionList](#assertionlist) | Flat form: all assertions apply to every success path. |
+| 2 | [AssertionEntry](#assertionentry) | Keyed form: `_always` for universal assertions, event/command names for conditional assertions. |
+
+## PascalName
+
+PascalCase identifier.
+
+| Constraint | Value |
+|------------|-------|
+| **Type** | `string` |
+| **Pattern** | PascalCase identifier |
+
+## PredicateEntry
+
+Predicate entry: bare name (common reference) or inline definition (name → expression).
+
+| Option | Type | Description |
+|--------|------|-------------|
+| 1 | [PredicateName](#predicatename) | kebab-case identifier that reads as natural language. |
+| 2 | [InlinePredicate](#inlinepredicate) | Inline predicate: name → expression. |
+
+## PredicateMap
+
+Map of predicate names to expressions.
+
+| Constraint | Value |
+|------------|-------|
+| **Type** | `Record<PredicateName, Expression>` |
+| **Key Type** | [PredicateName](#predicatename) |
+| **Value Type** | [Expression](#expression) |
+| **Key Format** | kebab-case predicate names |
+| **Description** | Maps predicate names to expressions |
+
+## PredicateName
+
+kebab-case identifier that reads as natural language.
+
+| Constraint | Value |
+|------------|-------|
+| **Type** | `string` |
+| **Pattern** | kebab-case identifier |
+| **Description** | Must read as natural language |
+
+## AssertionEntry
+
+Assertion: name → expression evaluated in outcome context.
+
+| Constraint | Value |
+|------------|-------|
+| **Type** | `Record<PredicateName, Expression>` |
+| **Key Type** | [PredicateName](#predicatename) |
+| **Value Type** | [Expression](#expression) |
+
+## AssertionList
+
+List of assertions. All must hold after state change.
+
+| Constraint | Value |
+|------------|-------|
+| **Type** | `Array<AssertionEntry>` |
+| **Item Type** | [AssertionEntry](#assertionentry) |
+| **Description** | All assertions must hold after state change |
+| **Min Length** | 1 |
+
+## Expression
+
+Scope annotation, prose description, or TypeScript boolean expression over dm.*/om.*/rm.* namespaces.
+
+| Constraint | Value |
+|------------|-------|
+| **Type** | `string` |
+| **Min Length** | 1 |
+| **Description** | Scope annotation, prose description, or TypeScript expression |
+
+## InlinePredicate
+
+Inline predicate: name → expression.
+
+| Constraint | Value |
+|------------|-------|
+| **Type** | `Record<PredicateName, Expression>` |
+| **Key Type** | [PredicateName](#predicatename) |
+| **Value Type** | [Expression](#expression) |
+| **Key Format** | kebab-case predicate name |
+| **Constraint** | Must have exactly one key |
+| **Description** | Single predicate definition |

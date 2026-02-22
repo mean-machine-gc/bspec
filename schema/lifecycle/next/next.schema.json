@@ -4,7 +4,7 @@
   "properties": {
     "ubispec": {
       "type": "string",
-      "const": "lifecycle/v1.0",
+      "const": "lifecycle/v1.1",
       "description": "Format identifier and version."
     },
     "decider": {
