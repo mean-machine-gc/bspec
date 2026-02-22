@@ -29,7 +29,7 @@ const lifecycleVersions: Version[] = [
 ]
 
 const lifecycleSpec: Spec = {
-    name: 'process',
+    name: 'lifecycle',
     description: 'Models aggregates process',
     versions: lifecycleVersions
 }

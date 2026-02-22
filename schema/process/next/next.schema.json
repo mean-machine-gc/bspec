@@ -1,0 +1,5 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://mean-machine-gc.github.io/ubispec/schema/process/next.schema.json",
+  "title": "process UbiSpec next"
+}
