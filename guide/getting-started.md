@@ -5,6 +5,10 @@ nav_order: 2
 ---
 
 # Getting Started
+- TOC
+{:toc}
+
+
 
 ## VS Code Setup
 
@@ -122,13 +126,31 @@ reactions:
 
 ## Using UbiSpec with LLM Agents
 
-Point an agent at the spec index to discover the current format:
+UbiSpec follows the [llms.txt convention](https://llmstxt.org/) for LLM discoverability. Two files at known URLs give agents everything they need:
+
+| File | URL | Purpose |
+|------|-----|---------|
+| `llms.txt` | [/llms.txt](/llms.txt) | Index with links — the table of contents an agent reads first |
+| `llms-full.txt` | [/llms-full.txt](/llms-full.txt) | Complete spec reference in one document — everything an agent needs in a single fetch |
+
+### Quick Start for Agents
+
+Point any agent at the full reference:
+
+```
+Fetch https://mean-machine-gc.github.io/ubispec/llms-full.txt
+```
+
+That single file contains the complete format specification, namespace reference, naming conventions, full examples for both lifecycle and process specs, common mistakes to avoid, and a step-by-step guide for generating UbiSpec from domain context. No navigation, no HTML parsing — just plain text optimized for a context window.
+
+
+### Machine-Readable Spec Index
+
+For programmatic discovery of versions and schemas:
 
 ```
 https://mean-machine-gc.github.io/ubispec/spec/index.json
 ```
-
-Returns:
 
 ```json
 {
@@ -151,38 +173,6 @@ Returns:
 }
 ```
 
-### Agent Workflow
-
-A typical agent prompt for generating UbiSpec from a domain conversation:
-
-```
-1. Fetch https://mean-machine-gc.github.io/ubispec/spec/index.json
-2. Fetch the latest lifecycle spec and schema
-3. Given the following domain context: { ... }
-4. Generate a lifecycle UbiSpec that validates against the schema
-```
-
-The schema is a standard JSON Schema. Any agent that can validate YAML against JSON Schema can produce and verify UbiSpec.
-
-### Feeding Existing Specs to Agents
-
-When asking an agent to work with your specs, provide:
-
-```
-Here is the UbiSpec format reference:
-{ paste or link to spec page }
-
-Here is our current domain model:
-{ paste model.ts }
-
-Here are our current specs:
-{ paste *.ubispec.yaml files }
-
-Task: add a new command ReturnOrder to the Order lifecycle.
-```
-
-The agent has the format, the types, and the existing behaviour. It can generate a spec entry that's consistent with what exists.
-
 ## Versioning
 
 The `ubispec:` field in your YAML declares which version of the format you're using:
@@ -198,6 +188,51 @@ ubispec: lifecycle/v2.0    # breaking structural changes
 **Major bumps** (v1 → v2) change required fields or structure. Your specs need migration.
 
 Match your schema URL to the version you're using. The schema validates that your YAML conforms to that version's structure.
+
+## Tooling
+
+Three ways to consume UbiSpec programmatically, from fully deterministic to AI-assisted:
+
+### Generators (planned)
+
+Deterministic transforms that produce artifacts from the YAML structure. No LLM involved — pure structural transformation.
+
+| Generator | Input | Output |
+|-----------|-------|--------|
+| Decision tables | Lifecycle | Constraint × scenario matrix per command |
+| Test scenarios | Lifecycle | Happy paths, conditional variants, failure cases |
+| Validation checklists | Lifecycle | Stakeholder sign-off document with checkboxes |
+| Traceability matrix | Lifecycle + Process | Command → event → reaction → command chain |
+| Topology diagram | Process | Mermaid/GraphViz graph of aggregates and coordination |
+| Integration manifest | Lifecycle + Process | All `dm.ctx` / `rm.ctx` dependencies catalogued |
+| Command catalog | Lifecycle | Flat index of every command in the system |
+
+Status: specification defined, CLI tool planned.
+
+### MCP Server (planned)
+
+A [Model Context Protocol](https://modelcontextprotocol.io/) server that exposes UbiSpec operations as tools. An LLM agent connected to the MCP server can:
+
+- Validate a spec against the schema
+- Generate derived artifacts (decision tables, scenarios, checklists)
+- Query across specs ("which commands produce this event?", "what is the blast radius of changing this aggregate?")
+- Propose spec entries from natural language domain descriptions
+
+Status: in progress.
+
+### LLM Skills (planned)
+
+Reusable prompt packages that embed UbiSpec knowledge into an agent's context. A skill gives an agent the ability to read, write, and reason about UbiSpec without fetching external references each time.
+
+Planned skills:
+
+| Skill | Purpose |
+|-------|---------|
+| `ubispec-author` | Generate lifecycle and process specs from domain conversations |
+| `ubispec-review` | Validate specs for completeness, consistency, and naming quality |
+| `ubispec-enrich` | Add predicate expressions to a names-only spec given a domain model |
+
+Status: in progress.
 
 ## Playground
 

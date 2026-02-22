@@ -21,17 +21,9 @@ UbiSpec is in **early development**. Feel free to look around, experiment, and m
 [Guide](https://just-the-docs.com){: .btn  }
 [Design principles](https://just-the-docs.com){: .btn  }
 [Go to Playground](https://mean-machine-gc.github.io/bspec/playground){: .btn .btn-purple }
-[View on GitHub](https://just-the-docs.com){: .btn .btn-blue }
 
 
-## Specification Formats
 
-UbiSpec currently defines two formats:
-
-| Format | File | Captures |
-|--------|------|----------|
-| [**Lifecycle UbiSpec**](spec/lifecycle.md) | `*.lifecycle.ubispec.yaml` | Single aggregate behaviour: commands, conditions, outcomes |
-| [**Process UbiSpec**](spec/process.md) | `*.process.ubispec.yaml` | Cross-aggregate coordination: event reactions, command dispatch |
 
 ## Practices UbiSpec Operationalises
 
