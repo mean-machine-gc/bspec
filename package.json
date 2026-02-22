@@ -1,0 +1,19 @@
+{
+  "name": "ubispec",
+  "version": "0.1.0",
+  "description": "Ubiquitous specification format for describing software systems behaviour",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Giovanni Chiodi",
+  "license": "MIT",
+  "devDependencies": {
+    "tsx": "^4.21.0",
+    "zod": "^4.3.6",
+    "zod-to-json-schema": "^3.25.1"
+  }
+}
