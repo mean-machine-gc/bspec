@@ -1,3 +1,11 @@
+---
+layout: default
+title: Schema reference
+parent: next (unstable)
+grand_parent: Lifecycle UbiSpec
+nav_order: 3
+---
+
 # Lifecycle UbiSpec next — Schema Reference
 
 ## LifecycleSpec Object

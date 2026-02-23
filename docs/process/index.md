@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Specs
+title: Process UbiSpec
 nav_order: 3
 has_children: true
 ---

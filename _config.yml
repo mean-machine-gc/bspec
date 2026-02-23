@@ -51,6 +51,9 @@ callouts:
     title: Correct
     color: green
   wrong: 
-    title: wrong
+    title: Wrong
     color: red
+  note: 
+    title: Note
+    color: blue
 

@@ -1,8 +1,8 @@
 ---
 layout: default
-title: Lifecycle
-parent: Specs
-nav_order: 1
+title: next (unstable)
+parent: Lifecycle UbiSpec
+nav_order: 2
 has_children: true
 ---
 

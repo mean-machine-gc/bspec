@@ -1,3 +1,11 @@
+---
+layout: default
+title: Schema reference
+parent: next (unstable)
+grand_parent: Process UbiSpec
+nav_order: 2
+---
+
 # Process UbiSpec next — Schema Reference
 
 ## ProcessSpec Object
