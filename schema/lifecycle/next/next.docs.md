@@ -3,7 +3,7 @@ layout: default
 title: Schema reference
 parent: next (unstable)
 grand_parent: Lifecycle UbiSpec
-nav_order: 3
+nav_order: 2
 ---
 
 # Lifecycle UbiSpec next — Schema Reference

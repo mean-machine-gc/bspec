@@ -1,7 +1,7 @@
 ---
 layout: default
-title: Lifecycle UbiSpec
-nav_order: 4
+title: System UbiSpec
+nav_order: 3
 has_children: true
 ---
 

@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Conceptual Foundations
-nav_order: 2
+nav_order: 5
 ---
 
 # Conceptual Foundations

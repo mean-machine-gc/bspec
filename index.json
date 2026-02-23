@@ -1,0 +1,60 @@
+{
+  "specs": {
+    "lifecycle": {
+      "description": "Models aggregates process",
+      "versions": {
+        "v1.0": {
+          "schema": "https://raw.githubusercontent.com/mean-machine-gc/bspec/main/schema/lifecycle/v1-0/v1-0.schema.json",
+          "zod": "https://github.com/mean-machine-gc/bspec/blob/main/schema/lifecycle/v1-0/lifecycle.ts",
+          "export": "LifecycleSpec",
+          "docs": "https://mean-machine-gc.github.io/bspec/schema/lifecycle/v1.0/",
+          "status": "stable"
+        },
+        "next": {
+          "schema": "https://raw.githubusercontent.com/mean-machine-gc/bspec/main/schema/lifecycle/next/next.schema.json",
+          "zod": "https://github.com/mean-machine-gc/bspec/blob/main/schema/lifecycle/next/lifecycle.ts",
+          "export": "LifecycleSpec",
+          "docs": "https://mean-machine-gc.github.io/bspec/schema/lifecycle/next/",
+          "status": "unstable"
+        }
+      },
+      "latest": "v1.0"
+    },
+    "process": {
+      "description": "Models aggregates process",
+      "versions": {
+        "v1.0": {
+          "schema": "https://raw.githubusercontent.com/mean-machine-gc/bspec/main/schema/process/v1-0/v1-0.schema.json",
+          "zod": "https://github.com/mean-machine-gc/bspec/blob/main/schema/process/v1-0/process.ts",
+          "export": "ProcessSpec",
+          "docs": "https://mean-machine-gc.github.io/bspec/schema/process/v1.0/",
+          "status": "stable"
+        },
+        "next": {
+          "schema": "https://raw.githubusercontent.com/mean-machine-gc/bspec/main/schema/process/next/next.schema.json",
+          "zod": "https://github.com/mean-machine-gc/bspec/blob/main/schema/process/next/process.ts",
+          "export": "ProcessSpec",
+          "docs": "https://mean-machine-gc.github.io/bspec/schema/process/next/",
+          "status": "unstable"
+        }
+      },
+      "latest": "v1.0"
+    },
+    "system": {
+      "description": "Models a system with modules and cross-module messaging",
+      "versions": {
+        "v1.0": {
+          "schema": "https://raw.githubusercontent.com/mean-machine-gc/bspec/main/schema/system/v1-0/v1-0.schema.json",
+          "zod": "https://github.com/mean-machine-gc/bspec/blob/main/schema/system/v1-0/system.ts",
+          "export": "SystemSpec",
+          "docs": "https://mean-machine-gc.github.io/bspec/schema/system/v1.0/",
+          "status": "stable"
+        }
+      },
+      "latest": "v1.0"
+    }
+  },
+  "generated": "2026-02-23T11:59:07.139Z",
+  "repo": "https://github.com/mean-machine-gc/bspec",
+  "docs": "https://mean-machine-gc.github.io/bspec"
+}

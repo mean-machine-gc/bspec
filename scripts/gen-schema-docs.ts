@@ -518,17 +518,29 @@ function isZodSchema(value: any): value is z.ZodTypeAny {
   return value && typeof value === 'object' && value instanceof z.ZodType;
 }
 
+/** Format version name for display (v1-0 → v1.0) */
+function formatVersionForDisplay(version: string): string {
+  return version === 'v1-0' ? 'v1.0' : version;
+}
+
+/** Generate Jekyll front matter for documentation */
+function generateFrontMatter(specType: any, version: any): string {
+  const specName = specType.name.charAt(0).toUpperCase() + specType.name.slice(1);
+  const versionDisplay = formatVersionForDisplay(version.version);
+  const stability = version.stable ? 'stable' : 'unstable';
+  
+  return `---
+layout: default
+title: Schema reference
+parent: ${versionDisplay} (${stability})
+grand_parent: ${specName} UbiSpec
+nav_order: 2
+---`;
+}
+
 /** Get the appropriate filename for the version */
 function getModuleFilename(specType: string, version: string): string {
-  if (version === 'next') {
-    return 'next.ts';
-  }
-  
-  if (specType === 'lifecycle' && version === 'v1-0') {
-    return 'lifecycle.ts';
-  }
-  
-  return `${version}.ts`;
+  return `${specType}.ts`;
 }
 
 /** Register ALL exported schemas including imported shared schemas */
@@ -586,8 +598,11 @@ async function generateDocsForVersion(specType: any, version: any): Promise<stri
     
     const sections: string[] = [];
     
+    // Add Jekyll front matter
+    sections.push(generateFrontMatter(specType, version));
+    
     // Add header
-    sections.push(`# ${specType.name.charAt(0).toUpperCase() + specType.name.slice(1)} UbiSpec ${version.version} — Schema Reference\n`);
+    sections.push(`\n# ${specType.name.charAt(0).toUpperCase() + specType.name.slice(1)} UbiSpec ${version.version} — Schema Reference\n`);
     
     // Process the main spec schema first
     const mainSchemaName = `${specType.name.charAt(0).toUpperCase() + specType.name.slice(1)}Spec`;

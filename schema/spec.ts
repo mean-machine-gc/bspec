@@ -1,7 +1,8 @@
-import { LifecycleSpec as LifecycleNext} from "./lifecycle/next/next"
+import { LifecycleSpec as LifecycleNext} from "./lifecycle/next/lifecycle"
 import { LifecycleSpec as LifecycleV10 } from "./lifecycle/v1-0/lifecycle"
-import { ProcessSpec as ProcessNext } from "./process/next/next"
-import { ProcessSpec as ProcessV10 } from "./process/v1-0/v1-0"
+import { ProcessSpec as ProcessNext } from "./process/next/process"
+import { ProcessSpec as ProcessV10 } from "./process/v1-0/process"
+import { SystemSpec } from "./system/v1-0/system"
 
 type Version = {
     version: string,
@@ -53,7 +54,22 @@ const processSpec: Spec = {
     versions: processVersions
 }
 
+const systemVersions: Version[] = [
+    {
+        version: 'v1-0',
+        stable: true,
+        zodSchema: SystemSpec
+    },
+]
+
+const systemSpec: Spec = {
+    name: 'system',
+    description: 'Models a system with modules and cross-module messaging',
+    versions: systemVersions
+}
+
 export const spec: Spec[] = [
     lifecycleSpec,
-    processSpec
+    processSpec,
+    systemSpec
 ]
